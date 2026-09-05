@@ -5,6 +5,8 @@
 namespace App\Filament\Pages;
 
 use App\Models\DailyBonusConfig;
+use App\Support\AdminActionGuard;
+use App\Support\AdminAudit;
 use Filament\Forms;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -36,7 +38,6 @@ class AdminDailyBonusConfigPage extends Page
     public function mount(): void
     {
         $record = $this->record();
-
         $this->form->fill([
             'bonus_value' => (float) $record->bonus_value,
             'cycle_hours' => (int) $record->cycle_hours,
@@ -45,9 +46,7 @@ class AdminDailyBonusConfigPage extends Page
 
     protected function getForms(): array
     {
-        return [
-            'form',
-        ];
+        return ['form'];
     }
 
     public function form(Forms\Form $form): Forms\Form
@@ -83,15 +82,23 @@ class AdminDailyBonusConfigPage extends Page
                             ->content(function (Forms\Get $get): string {
                                 $value = (float) ($get('bonus_value') ?? 0);
                                 $hours = (int) ($get('cycle_hours') ?? 24);
-
                                 $money = $this->money($value);
                                 $when = $hours === 24 ? 'uma vez por dia' : "a cada {$hours} horas";
-
                                 return "O usuário poderá resgatar {$money} {$when}.";
                             })
                             ->columnSpanFull(),
                     ])
                     ->columns(2),
+
+                Forms\Components\Section::make('Confirmação administrativa')
+                    ->schema([
+                        Forms\Components\TextInput::make('admin_password')
+                            ->label('PIN administrativo')
+                            ->password()
+                            ->numeric()
+                            ->length(6)
+                            ->required(),
+                    ]),
 
                 Forms\Components\Section::make('Boas práticas')
                     ->description('Regras operacionais para evitar abuso.')
@@ -112,11 +119,24 @@ class AdminDailyBonusConfigPage extends Page
     public function save(): void
     {
         $data = $this->form->getState();
+        if (! app(AdminActionGuard::class)->confirm((string) ($data['admin_password'] ?? ''))) {
+            Notification::make()->title('Acesso negado')->body('PIN administrativo inválido.')->danger()->send();
+            return;
+        }
 
-        $this->record()->update([
+        $record = $this->record();
+        $before = $record->only(['bonus_value', 'cycle_hours']);
+        $record->update([
             'bonus_value' => (float) ($data['bonus_value'] ?? 0),
             'cycle_hours' => (int) ($data['cycle_hours'] ?? 24),
         ]);
+        AdminAudit::log(
+            'daily_bonus.config.update',
+            $record,
+            $before,
+            $record->fresh()->only(['bonus_value', 'cycle_hours']),
+            'Atualizou configuração do bônus diário.'
+        );
 
         Notification::make()
             ->title('Bônus diário atualizado')
@@ -129,34 +149,19 @@ class AdminDailyBonusConfigPage extends Page
     {
         return DailyBonusConfig::query()->firstOrCreate(
             ['id' => 1],
-            [
-                'bonus_value' => 10.00,
-                'cycle_hours' => 24,
-            ]
+            ['bonus_value' => 10.00, 'cycle_hours' => 24]
         );
     }
 
     public function stats(): array
     {
         $record = $this->record();
-
         $today = now()->toDateString();
         $yesterday = now()->subDay()->toDateString();
-
-        $claimsToday = DB::table('daily_bonus_claims')
-            ->whereDate('claimed_at', $today)
-            ->count();
-
-        $claimsYesterday = DB::table('daily_bonus_claims')
-            ->whereDate('claimed_at', $yesterday)
-            ->count();
-
+        $claimsToday = DB::table('daily_bonus_claims')->whereDate('claimed_at', $today)->count();
+        $claimsYesterday = DB::table('daily_bonus_claims')->whereDate('claimed_at', $yesterday)->count();
         $totalClaims = DB::table('daily_bonus_claims')->count();
-
-        $lastClaim = DB::table('daily_bonus_claims')
-            ->latest('claimed_at')
-            ->value('claimed_at');
-
+        $lastClaim = DB::table('daily_bonus_claims')->latest('claimed_at')->value('claimed_at');
         $bonusValue = (float) $record->bonus_value;
 
         return [
@@ -175,14 +180,8 @@ class AdminDailyBonusConfigPage extends Page
 
     private function riskLabel(int $hours, float $value): string
     {
-        if ($hours < 12 && $value > 0) {
-            return 'Alto risco';
-        }
-
-        if ($hours < 24 || $value >= 5) {
-            return 'Atenção';
-        }
-
+        if ($hours < 12 && $value > 0) return 'Alto risco';
+        if ($hours < 24 || $value >= 5) return 'Atenção';
         return 'Normal';
     }
 
