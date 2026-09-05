@@ -21,12 +21,24 @@ class PixFacilRuntimeController extends Controller
             abort(500, 'Não foi possível carregar o runtime do tema.');
         }
 
-        // O V15 foi originalmente escrito como renderer mobile-only. No desktop
-        // queremos reutilizar exatamente o mesmo renderer/rotas/dados, mudando
-        // apenas o layout via CSS. Mantemos Admin e players fora do ownership.
+        // No desktop, o mesmo renderer V15 do celular assume todas as rotas visuais.
+        // Admin e players continuam fora do ownership.
         $source = str_replace(
             "if(!MOBILE()||/^\\/admin(?:\\/|$)/i.test(p)||gamePath(p))return false;",
             "if(/^\\/admin(?:\\/|$)/i.test(p)||gamePath(p))return false;",
+            $source
+        );
+
+        // Compatibilidade com rotas legadas do tema original.
+        $source = str_replace(
+            "^\\/(?:casino|pesquisar|search)",
+            "^\\/(?:casino|cassino|games|jogos|slots|live-casino|pesquisar|search)",
+            $source
+        );
+
+        $source = str_replace(
+            "else if(/^\\/casino/i.test(p)||/^\\/(?:pesquisar|search)/i.test(p))await renderCasino(seq);",
+            "else if(/^\\/(?:casino|cassino|games|jogos|slots|live-casino)/i.test(p)||/^\\/(?:pesquisar|search)/i.test(p))await renderCasino(seq);",
             $source
         );
 
