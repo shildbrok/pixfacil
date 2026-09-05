@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\Games\GameController;
 use App\Http\Controllers\Api\Profile\WalletController;
 use App\Http\Controllers\Api\Settings\BrandingController;
 use App\Http\Controllers\Assets\PixFacilRuntimeController;
+use App\Http\Controllers\Assets\PixFacilStylesController;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CacheController;
@@ -46,6 +47,8 @@ Route::get('/branding/data', BrandingController::class)
 
 Route::get('/pixfacil/runtime.js', PixFacilRuntimeController::class)
     ->name('pixfacil.runtime');
+Route::get('/pixfacil/runtime.css', PixFacilStylesController::class)
+    ->name('pixfacil.styles');
 
 Route::post('/playfiver/webhook', [GameController::class, 'webhookPlayFiver'])
     ->middleware('throttle:webhooks');
