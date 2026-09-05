@@ -15,13 +15,19 @@
             return asset('storage/' . $path);
         };
 
+        $versionedAsset = static function (string $relative): string {
+            $full = public_path($relative);
+            $version = is_file($full) ? filemtime($full) : time();
+            return asset($relative) . '?v=' . $version;
+        };
+
         $favicon = $resolveStorageAsset($setting?->software_favicon ?? null, 'storage/icon/icon-padrao.webp');
         $canonical = $setting?->site_url ? rtrim($setting->site_url, '/') : url()->current();
     @endphp
 
     <link rel="shortcut icon" href="{{ $favicon }}" type="image/x-icon">
     <link rel="apple-touch-icon" href="{{ $favicon }}" type="image/x-icon">
-    <link rel="manifest" href="{{ asset('pixfacil-v15/manifest.webmanifest') }}?v=20260905-1830">
+    <link rel="manifest" href="{{ $versionedAsset('pixfacil-v15/manifest.webmanifest') }}">
     <meta name="theme-color" content="#050806">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -114,6 +120,13 @@
             'pixfacil-v15/hero.webp'
         );
 
+        $themeAssetVersion = max(
+            is_file(public_path('pixfacil-v15/pixfacil-v15.js')) ? filemtime(public_path('pixfacil-v15/pixfacil-v15.js')) : 0,
+            is_file(public_path('pixfacil-v15/pixfacil-desktop.js')) ? filemtime(public_path('pixfacil-v15/pixfacil-desktop.js')) : 0,
+            is_file(public_path('pixfacil-v15/pixfacil-v15.css')) ? filemtime(public_path('pixfacil-v15/pixfacil-v15.css')) : 0,
+            is_file(public_path('pixfacil-v15/pixfacil-desktop.css')) ? filemtime(public_path('pixfacil-v15/pixfacil-desktop.css')) : 0
+        );
+
         $pixfacilMobileConfig = [
             'softwareName' => (string) ($setting?->software_name ?: 'PixFácil'),
             'pixfacilLogo' => $pixfacilThemeLogo,
@@ -121,6 +134,7 @@
             'logoLoading' => $pixfacilLoadingLogo,
             'liveEnabled' => (bool) ($setting?->custom?->live_ganhos_status ?? false),
             'content' => is_array($setting?->frontend_content ?? null) ? $setting->frontend_content : [],
+            'assetVersion' => (string) $themeAssetVersion,
         ];
 
         $requestPath = '/' . trim(request()->path(), '/');
@@ -131,7 +145,7 @@
         $ownedRoute =
             $requestPath === '/'
             || $authRoute
-            || preg_match('#^/(?:casino|pesquisar|search)(?:/|$)#i', $requestPath)
+            || preg_match('#^/(?:casino|cassino|games|jogos|slots|live-casino|pesquisar|search)(?:/|$)#i', $requestPath)
             || preg_match('#^/profile/(?:account|deposit|withdraw|transactions|bets|affiliate|verification|responsible-gaming|identity|experience)(?:/|$)#i', $requestPath)
             || preg_match('#^/support-center(?:/|$)#i', $requestPath)
             || preg_match('#^/retro(?:/|$)#i', $requestPath)
@@ -144,7 +158,6 @@
         $ownedRoute = $ownedRoute && ! $excludedRoute;
         $gameRoute = preg_match('#^/games/play(?:/|$)#i', $requestPath)
             || preg_match('#^/sport(?:book)?/play(?:/|$)#i', $requestPath);
-        $desktopShellRoute = ! $authRoute && ! $excludedRoute;
     @endphp
 
     <script>
@@ -153,21 +166,19 @@
         window.PIXFACIL_V13_GAME_ROUTE = @json((bool) $gameRoute);
     </script>
 
-    <link rel="stylesheet" href="{{ asset('pixfacil-v15/pixfacil-v15.css') }}?v=20260905-1830">
+    <link rel="stylesheet" href="{{ $versionedAsset('pixfacil-v15/pixfacil-v15.css') }}">
     @if ($ownedRoute)
-        <link rel="stylesheet" href="{{ asset('pixfacil-v15/pixfacil-unified-pages.css') }}?v=20260905-1830">
+        <link rel="stylesheet" href="{{ $versionedAsset('pixfacil-v15/pixfacil-unified-pages.css') }}">
     @endif
-    @if ($desktopShellRoute || $authRoute)
-        <link rel="stylesheet" href="{{ asset('pixfacil-v15/pixfacil-desktop.css') }}?v=20260905-1830">
+    @if (! $excludedRoute)
+        <link rel="stylesheet" href="{{ $versionedAsset('pixfacil-v15/pixfacil-desktop.css') }}">
     @endif
-    <script defer src="{{ asset('pixfacil-v15/pixfacil-v15.js') }}?v=20260905-1830"></script>
+    <script defer src="{{ $versionedAsset('pixfacil-v15/pixfacil-v15.js') }}"></script>
     @if ($ownedRoute)
-        <script defer src="{{ asset('pixfacil-v15/pixfacil-content-sync.js') }}?v=20260905-1830"></script>
+        <script defer src="{{ $versionedAsset('pixfacil-v15/pixfacil-content-sync.js') }}"></script>
     @endif
-    @if ($desktopShellRoute)
-        <script defer src="{{ asset('pixfacil-v15/pixfacil-desktop.js') }}?v=20260905-1830"></script>
-    @elseif ($authRoute)
-        <script defer src="{{ asset('pixfacil-v15/pixfacil-desktop-auth-guard.js') }}?v=20260905-1830"></script>
+    @if (! $excludedRoute)
+        <script defer src="{{ $versionedAsset('pixfacil-v15/pixfacil-desktop.js') }}"></script>
     @endif
 </head>
 
