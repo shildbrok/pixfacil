@@ -8,20 +8,26 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('banners', function (Blueprint $table): void {
-            if (! Schema::hasColumn('banners', 'is_active')) {
+        $addActive = ! Schema::hasColumn('banners', 'is_active');
+        $addOrder = ! Schema::hasColumn('banners', 'sort_order');
+        $addDesktop = ! Schema::hasColumn('banners', 'show_desktop');
+        $addMobile = ! Schema::hasColumn('banners', 'show_mobile');
+
+        if (! $addActive && ! $addOrder && ! $addDesktop && ! $addMobile) {
+            return;
+        }
+
+        Schema::table('banners', function (Blueprint $table) use ($addActive, $addOrder, $addDesktop, $addMobile): void {
+            if ($addActive) {
                 $table->boolean('is_active')->default(true)->after('type');
             }
-
-            if (! Schema::hasColumn('banners', 'sort_order')) {
+            if ($addOrder) {
                 $table->unsignedInteger('sort_order')->default(0)->after('is_active');
             }
-
-            if (! Schema::hasColumn('banners', 'show_desktop')) {
+            if ($addDesktop) {
                 $table->boolean('show_desktop')->default(true)->after('sort_order');
             }
-
-            if (! Schema::hasColumn('banners', 'show_mobile')) {
+            if ($addMobile) {
                 $table->boolean('show_mobile')->default(true)->after('show_desktop');
             }
         });
@@ -29,17 +35,17 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::table('banners', function (Blueprint $table): void {
-            $columns = [];
-            foreach (['is_active', 'sort_order', 'show_desktop', 'show_mobile'] as $column) {
-                if (Schema::hasColumn('banners', $column)) {
-                    $columns[] = $column;
-                }
-            }
+        $columns = array_values(array_filter(
+            ['is_active', 'sort_order', 'show_desktop', 'show_mobile'],
+            fn (string $column): bool => Schema::hasColumn('banners', $column)
+        ));
 
-            if ($columns !== []) {
-                $table->dropColumn($columns);
-            }
+        if ($columns === []) {
+            return;
+        }
+
+        Schema::table('banners', function (Blueprint $table) use ($columns): void {
+            $table->dropColumn($columns);
         });
     }
 };
