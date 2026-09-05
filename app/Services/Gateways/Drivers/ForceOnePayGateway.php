@@ -9,6 +9,7 @@ use App\Models\Transaction;
 use App\Models\Wallet;
 use App\Models\Withdrawal;
 use App\Services\Gateways\Contracts\PaymentGateway;
+use App\Services\Gateways\WithdrawalDispatchClaim;
 use App\Services\Gateways\ForceOnePay\ForceOnePayClient;
 use App\Support\GatewayLog;
 use Illuminate\Http\JsonResponse;
@@ -29,7 +30,7 @@ use Illuminate\Support\Str;
  *
  * A defesa possível, então, é a URL: nós definimos o endereço do webhook a cada
  * requisição (campo `webhook`), e colocamos nele um SEGREDO aleatório único por
- * transação. Isso dá duas coisas de uma vez:
+ * transção. Isso dé duas coisas de uma vez:
  *   1. Autenticidade — só nós e o provedor conhecemos aquela URL.
  *   2. Correlação — a doc não diz se o `idTransaction` do webhook é o `txid` ou
  *      o `codigo`; com a URL secreta não precisamos saber, ela já identifica a
@@ -89,7 +90,7 @@ class ForceOnePayGateway implements PaymentGateway
             $amount = round((float) $request->input('amount'), 2);
 
             // Segredo da URL do webhook: é a única prova de autenticidade que
-            // este provedor permite. Gerado ANTES da chamada porque vai na
+            // este provedor permite. Gerado ANTES da chamada porque que vai na
             // requisição. 48 chars aleatórios não são adivinháveis.
             $secret = Str::random(48);
 
@@ -204,7 +205,7 @@ class ForceOnePayGateway implements PaymentGateway
                 return false;
             }
 
-            $w = Withdrawal::where('id', $withdrawalId)->where('status', 0)->first();
+            $w = WithdrawalDispatchClaim::claim($withdrawalId, $this->key(), fn (Withdrawal $row) => (string) Str::uuid());
             if (! $w) {
                 return false;
             }
@@ -226,12 +227,7 @@ class ForceOnePayGateway implements PaymentGateway
 
             // uuid estável por saque: reusa o de uma tentativa anterior, senão o
             // webhook antigo apontaria para uma URL que não existe mais.
-            $uuid = $w->payment_id ?: (string) Str::uuid();
-
-            $w->status     = 9;
-            $w->payment_id = $uuid;
-            $w->gateway    = $this->key();
-            $w->save();
+            $uuid = (string) $w->payment_id;
 
             $res = $this->client->transferirPix([
                 'uuid'     => $uuid,
@@ -248,8 +244,7 @@ class ForceOnePayGateway implements PaymentGateway
 
                 // Recusa explícita do provedor: não saiu pagamento, pode voltar
                 // para pendente. O uuid é preservado para um reenvio usar o mesmo.
-                $w->status = 0;
-                $w->save();
+                WithdrawalDispatchClaim::releaseToPending($w->id);
 
                 return false;
             }

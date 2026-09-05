@@ -58,7 +58,7 @@ class ProcessPodPayWebhook implements ShouldQueue
             }
 
             str_starts_with($event, 'withdrawal.')
-                ? $this->handleCashOut($log, $id, $event)
+                ? $this->handleCashOut($log, $client, $id, $event)
                 : $this->handleCashIn($log, $client, $id);
 
             $log->update(['processed_at' => now()]);
@@ -125,29 +125,42 @@ class ProcessPodPayWebhook implements ShouldQueue
         DepositPaymentFinalizer::finalize($id, (string) $local->idUnico, null, 'podpay');
     }
 
-    private function handleCashOut(GatewayWebhookLog $log, string $id, string $event): void
+    private function handleCashOut(GatewayWebhookLog $log, PodPayClient $client, string $id, string $event): void
     {
-        // O webhook de saque do PodPay devolve APENAS o id dele (wd_...) — não
-        // existe external_id neste payload. Por isso o driver grava esse id em
-        // payment_id logo após criar o saque; é o único elo entre os dois lados.
         $w = Withdrawal::where('payment_id', $id)->first();
 
         if (! $w) {
             $this->fail($log, 'saque não encontrado na base');
-
             return;
         }
 
-        // Já finalizado: não regride (webhook fora de ordem acontece).
         if (in_array((int) $w->status, [1, 2], true)) {
             return;
         }
 
-        match ($event) {
-            'withdrawal.completed' => $w->update(['status' => 1]),
-            'withdrawal.failed', 'withdrawal.canceled' => $this->refundWithdrawal($w),
-            default => $w->update(['status' => 9]),
-        };
+        // O webhook não assinado não pode aprovar nem estornar dinheiro.
+        // Reconsulta o saque na API autenticada do PodPay e usa só esse status.
+        $res = $client->getWithdrawal($id);
+        if (! $res->successful()) {
+            $w->update(['status' => 9]);
+            $this->fail($log, 'getWithdrawal falhou: HTTP ' . $res->status());
+            return;
+        }
+
+        $remote = (array) ($res->json('data') ?? $res->json() ?? []);
+        $status = strtolower(trim((string) ($remote['status'] ?? '')));
+
+        if (in_array($status, ['completed', 'paid', 'approved', 'success'], true)) {
+            $w->update(['status' => 1]);
+            return;
+        }
+
+        if (in_array($status, ['failed', 'canceled', 'cancelled', 'rejected', 'refunded'], true)) {
+            $this->refundWithdrawal($w);
+            return;
+        }
+
+        $w->update(['status' => 9]);
     }
 
     /** Saque recusado: devolve ao saldo sacável e cancela, uma única vez. */

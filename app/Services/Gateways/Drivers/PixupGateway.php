@@ -9,6 +9,7 @@ use App\Models\Transaction;
 use App\Models\Wallet;
 use App\Models\Withdrawal;
 use App\Services\Gateways\Contracts\PaymentGateway;
+use App\Services\Gateways\WithdrawalDispatchClaim;
 use App\Services\Gateways\Pixup\PixupClient;
 use App\Support\GatewayLog;
 use Illuminate\Http\JsonResponse;
@@ -192,7 +193,7 @@ class PixupGateway implements PaymentGateway
                 return false;
             }
 
-            $w = Withdrawal::where('id', $withdrawalId)->where('status', 0)->first();
+            $w = WithdrawalDispatchClaim::claim($withdrawalId, $this->key(), fn (Withdrawal $row) => (string) Str::uuid());
             if (! $w) {
                 return false;
             }
@@ -211,12 +212,7 @@ class PixupGateway implements PaymentGateway
                 return false;
             }
 
-            $externalId = $w->payment_id ?: (string) Str::uuid();
-
-            $w->status     = 9;
-            $w->payment_id = $externalId;
-            $w->gateway    = $this->key();
-            $w->save();
+            $externalId = (string) $w->payment_id;
 
             $res = $this->client->cashOut([
                 'external_id'  => $externalId,
@@ -240,8 +236,7 @@ class PixupGateway implements PaymentGateway
 
                 // Volta para pendente PRESERVANDO o external_id: gerar outro num
                 // reprocesso arriscaria pagamento duplo.
-                $w->status = 0;
-                $w->save();
+                WithdrawalDispatchClaim::releaseToPending($w->id);
 
                 return false;
             }

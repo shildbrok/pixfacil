@@ -10,6 +10,7 @@ use App\Models\Wallet;
 use App\Models\Withdrawal;
 use App\Services\Gateways\AbilityPay\AbilityPayClient;
 use App\Services\Gateways\Contracts\PaymentGateway;
+use App\Services\Gateways\WithdrawalDispatchClaim;
 use App\Support\GatewayLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -184,10 +185,7 @@ class AbilityPayGateway implements PaymentGateway
     /**
      * Saque.
      *
-     * `amount` é o LÍQUIDO que o jogador recebe — o provedor debita amount+taxa
-     * do saldo dele. Bate com a nossa base, onde withdrawals.amount é o valor
-     * pedido pelo jogador.
-     *
+     * `amount` é o LÍQUIDO que o jogador recebe — taxa sai da conta do provedor.
      * O KYC é exigido do lado DELES: conta sem KYC aprovado recebe 403.
      */
     public function cashOut(int $withdrawalId, ?string $pixType = null): bool
@@ -197,7 +195,7 @@ class AbilityPayGateway implements PaymentGateway
                 return false;
             }
 
-            $w = Withdrawal::where('id', $withdrawalId)->where('status', 0)->first();
+            $w = WithdrawalDispatchClaim::claim($withdrawalId, $this->key());
             if (! $w) {
                 return false;
             }
@@ -209,17 +207,11 @@ class AbilityPayGateway implements PaymentGateway
 
             $keyType = $this->mapPixKeyType((string) ($pixType ?: $w->pix_type), (string) $w->pix_key);
 
-            $w->status  = 9;
-            $w->gateway = $this->key();
-            $w->save();
-
             $res = $this->client->createWithdrawal(array_filter([
                 'amount'       => $amount,
                 'pix_key'      => (string) $w->pix_key,
                 'pix_key_type' => $keyType,
                 'cpf'          => Helper::soNumero((string) $w->cpf),
-                // OBRIGATÓRIO neste provedor (a doc oficial marca como required);
-                // sem ele o saque é recusado na validação.
                 'description'  => 'Saque #' . $w->id,
             ], fn ($v) => $v !== null && $v !== ''), $this->withdrawalIdempotencyKey($w->id));
 
@@ -229,12 +221,8 @@ class AbilityPayGateway implements PaymentGateway
                     'body'       => mb_substr((string) $res->body(), 0, 300),
                 ]);
 
-                // 409 = mesma chave ainda em processamento lá. Deixa em 9: voltar
-                // para 0 permitiria uma segunda tentativa sobre um pagamento que
-                // pode estar saindo.
                 if ($res->status() !== 409) {
-                    $w->status = 0;
-                    $w->save();
+                    WithdrawalDispatchClaim::releaseToPending($w->id);
                 }
 
                 return false;
@@ -242,8 +230,6 @@ class AbilityPayGateway implements PaymentGateway
 
             $data = (array) ($res->json('data') ?? $res->json() ?? []);
 
-            // Guarda o external_id DELES (HPAY_PAYOUT_…): é o identificador que o
-            // webhook de saque devolve. Sem isto o saque ficaria preso em 9.
             $providerId = (string) ($data['external_id'] ?? '');
 
             if ($providerId !== '') {
@@ -259,7 +245,6 @@ class AbilityPayGateway implements PaymentGateway
         } catch (\Throwable $e) {
             GatewayLog::exception('ABILITYPAY', 'exceção no cash-out', $e);
 
-            // Timeout não prova que não pagou: fica em 9 e o webhook decide.
             return false;
         }
     }
@@ -267,10 +252,7 @@ class AbilityPayGateway implements PaymentGateway
     /**
      * Chave de idempotência do saque — OBRIGATÓRIA neste provedor.
      *
-     * Determinística a partir do id do saque. A doc sugere o formato
-     * `wd_{payment_id}_{uniqid}`, mas o uniqid geraria uma chave NOVA a cada
-     * tentativa — o que anula a idempotência justamente no reenvio, que é
-     * quando ela importa, e arriscaria pagar duas vezes.
+     * Determinística a partir do id do saque.
      */
     private function withdrawalIdempotencyKey(int $withdrawalId): string
     {
@@ -285,7 +267,6 @@ class AbilityPayGateway implements PaymentGateway
             'email'                   => 'email',
             'phone'                   => 'phone',
             'random', 'evp'           => 'random',
-            // Omitido, o provedor infere o tipo pela própria chave.
             default                   => null,
         };
     }

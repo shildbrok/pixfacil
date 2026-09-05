@@ -234,7 +234,7 @@ class MissionController extends Controller
                     'game',
                     DB::raw("SUM(CASE WHEN type = 'bet' THEN amount ELSE 0 END) AS sum_bet"),
                     DB::raw("SUM(CASE WHEN type = 'win' THEN amount ELSE 0 END) AS sum_win"),
-                    DB::raw("SUM(CASE WHEN type IN ('bet','win') THEN 1 ELSE 0 END) AS rounds_cnt"),
+                    DB::raw("SUM(CASE WHEN type = 'bet' THEN 1 ELSE 0 END) AS rounds_cnt"),
                 ])
                 ->groupBy('game')
                 ->get();
@@ -250,10 +250,10 @@ class MissionController extends Controller
                 $roundsByGame[$g] = (int) $row->rounds_cnt;
             }
 
-            $sumTotalBetWin = (float) Order::query()
+            $sumTotalBet = (float) Order::query()
                 ->where('user_id', $userId)
                 ->whereBetween('created_at', [$start, $end])
-                ->whereIn('type', ['bet', 'win'])
+                ->where('type', 'bet')
                 ->sum('amount');
 
             $sumDeposits = (float) Transaction::query()
@@ -266,7 +266,7 @@ class MissionController extends Controller
                 'sumBetByGame'   => $sumBetByGame,
                 'sumWinByGame'   => $sumWinByGame,
                 'roundsByGame'   => $roundsByGame,
-                'sumTotalBetWin' => $sumTotalBetWin,
+                'sumTotalBet'    => $sumTotalBet,
                 'sumDeposits'    => $sumDeposits,
             ];
         });
@@ -279,7 +279,7 @@ class MissionController extends Controller
 
         return match ($mission->type) {
             'game_bet'      => (float) ($agg['sumBetByGame'][$gameId] ?? 0.0),
-            'total_bet'     => (float) ($agg['sumTotalBetWin'] ?? 0.0),
+            'total_bet'     => (float) ($agg['sumTotalBet'] ?? 0.0),
             'deposit'       => (float) ($agg['sumDeposits'] ?? 0.0),
             'rounds_played' => (float) ($agg['roundsByGame'][$gameId] ?? 0),
             'win_amount'    => (float) ($agg['sumWinByGame'][$gameId] ?? 0.0),

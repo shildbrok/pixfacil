@@ -129,7 +129,7 @@ Route::prefix('jogos')->group(function () {
 });
 
 
-Route::group(['middleware' => ['auth.jwt']], function () {
+Route::group(['middleware' => ['auth.jwt', 'check.session']], function () {
 
 
     Route::prefix('daily-bonus')->group(function () {
@@ -240,7 +240,7 @@ Route::get('/games/all', [GameController::class, 'index'])
     ->middleware('throttle:games');
 
 Route::get('/games/single/{id}', [GameController::class, 'show'])
-    ->middleware(['throttle:games', 'aggregator.access:game']);
+    ->middleware(['auth.jwt', 'check.session', 'throttle:games', 'aggregator.access:game']);
 
 Route::any('/featured/games', [GameController::class, 'featured'])
     ->middleware('throttle:games');
@@ -307,8 +307,8 @@ Route::prefix('retro')->group(function () {
         ->middleware('throttle:games')
         ->group(function () {
             Route::get('/info', [RetroEngineController::class, 'info']);
-            Route::match(['GET', 'POST'], '/win', [RetroEngineController::class, 'win']);
-            Route::match(['GET', 'POST'], '/lost', [RetroEngineController::class, 'lost']);
+            Route::post('/win', [RetroEngineController::class, 'win']);
+            Route::post('/lost', [RetroEngineController::class, 'lost']);
         });
 });
 

@@ -9,6 +9,7 @@ use App\Models\Transaction;
 use App\Models\Wallet;
 use App\Models\Withdrawal;
 use App\Services\Gateways\Contracts\PaymentGateway;
+use App\Services\Gateways\WithdrawalDispatchClaim;
 use App\Services\Gateways\PodPay\PodPayClient;
 use App\Services\Gateways\PodPay\PodPayMoney;
 use App\Support\GatewayLog;
@@ -218,7 +219,7 @@ class PodPayGateway implements PaymentGateway
                 return false;
             }
 
-            $w = Withdrawal::where('id', $withdrawalId)->where('status', 0)->first();
+            $w = WithdrawalDispatchClaim::claim($withdrawalId, $this->key());
             if (! $w) {
                 return false;
             }
@@ -237,16 +238,7 @@ class PodPayGateway implements PaymentGateway
                 return false;
             }
 
-            // A chave de idempotência é DETERMINÍSTICA a partir do id do saque,
-            // em vez de um UUID guardado: assim um reenvio usa exatamente a
-            // mesma chave (o PodPay devolve o saque já criado em vez de pagar de
-            // novo) e o payment_id fica livre para guardar o id DELES — que é o
-            // único identificador que o webhook de saque devolve.
             $idempotencyKey = $this->withdrawalIdempotencyKey($w->id);
-
-            $w->status  = 9;
-            $w->gateway = $this->key();
-            $w->save();
 
             $res = $this->client->createWithdrawal([
                 'method'     => 'fiat',
@@ -257,14 +249,7 @@ class PodPayGateway implements PaymentGateway
             ], $idempotencyKey);
 
             if (! $res->successful()) {
-                // 409 = mesma chave em processamento. NÃO é falha: o saque já
-                // está andando lá. Voltar para 0 aqui permitiria uma segunda
-                // tentativa em cima de um pagamento que pode sair.
                 if ($res->status() === 409) {
-                    GatewayLog::warning('PODPAY', 'saque já em processamento (409)', 409, [
-                        'withdrawal' => $w->id,
-                    ]);
-
                     return false;
                 }
 
@@ -273,47 +258,28 @@ class PodPayGateway implements PaymentGateway
                     'body'       => mb_substr((string) $res->body(), 0, 300),
                 ]);
 
-                // A chave de idempotência é derivada do id, então voltar para 0
-                // é seguro: um reprocesso manda exatamente a mesma chave.
-                $w->status = 0;
-                $w->save();
-
+                WithdrawalDispatchClaim::releaseToPending($w->id);
                 return false;
             }
 
-            // Guarda o id DELES (wd_...): o webhook de saque só devolve esse
-            // identificador — não há external_id no payload. Sem isto o saque
-            // nunca seria encontrado e ficaria travado em 9 para sempre.
             $providerId = (string) ($res->json('data.id') ?? '');
-
             if ($providerId !== '') {
                 $w->payment_id = $providerId;
                 $w->save();
-            } else {
-                GatewayLog::warning('PODPAY', 'saque aceito sem id na resposta', null, [
-                    'withdrawal' => $w->id,
-                ]);
             }
 
             return true;
         } catch (\Throwable $e) {
             GatewayLog::exception('PODPAY', 'exceção no cash-out', $e);
-
-            // Timeout não prova que não pagou: fica em 9 e o webhook decide.
             return false;
         }
     }
 
-    /**
-     * Chave de idempotência do saque: determinística e estável entre tentativas.
-     * A API exige UUID ou alfanumérico de 8 a 64 chars — daí o hash em hex.
-     */
     private function withdrawalIdempotencyKey(int $withdrawalId): string
     {
         return substr(hash('sha256', 'podpay-withdrawal-' . $withdrawalId), 0, 32);
     }
 
-    /** Tipo interno -> pixKeyType do PodPay (minúsculo). */
     private function mapPixKeyType(string $internal, string $pixKey): ?string
     {
         return match (strtolower(trim($internal))) {
