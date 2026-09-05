@@ -1,0 +1,44 @@
+<IfModule mod_headers.c>
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()"
+    Header always set Cache-Control "no-transform"
+    Header always unset X-Powered-By
+    RequestHeader unset Proxy
+</IfModule>
+
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    # bloqueia métodos raros
+    RewriteCond %{REQUEST_METHOD} ^(TRACE|TRACK|DEBUG) [NC]
+    RewriteRule .* - [F,L]
+
+    # bloqueia arquivos ocultos, exceto .well-known
+    RewriteRule (^|/)\.(?!well-known/) - [F,L]
+
+    # bloqueia arquivos sensíveis no docroot
+    RewriteRule ^(composer\.(json|lock)|package(-lock)?\.json|yarn\.lock|pnpm-lock\.yaml|artisan|phpunit\.xml|server\.php)$ - [F,L,NC]
+
+    # bloqueia php e variantes, mas permite o front controller do Laravel
+    RewriteCond %{REQUEST_URI} !/index\.php$ [NC]
+    RewriteRule \.(php|php[0-9]?|phtml|phar|pht|phtm|phps|sh|bash|zsh|env|ini|log|sql|bak|dist)$ - [F,L,NC]
+
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # remove barra final de URLs que não são diretórios
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} ^(.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Laravel front controller
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+</IfModule>

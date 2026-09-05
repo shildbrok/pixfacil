@@ -1,0 +1,80 @@
+{
+    "name": "creagia/filament-code-field",
+    "description": "A Filamentphp input field to edit or view code data.",
+    "keywords": [
+        "creagia",
+        "laravel",
+        "filament-code-field",
+        "filament",
+        "filament field",
+        "code editor"
+    ],
+    "homepage": "https://github.com/creagia/filament-code-field",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Creagia",
+            "email": "info@creagia.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.1",
+        "filament/filament": "^3.2",
+        "illuminate/contracts": "^10.0|^11.0|^12.0",
+        "spatie/laravel-package-tools": "^1.16"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.0",
+        "nunomaduro/collision": "^6.0|^8.0",
+        "nunomaduro/larastan": "^2.0.1|^3.0",
+        "orchestra/testbench": "^8.0|^9.0|^10.0",
+        "pestphp/pest": "^1.21|^2.34|^3.7",
+        "pestphp/pest-plugin-laravel": "^1.1|^2.3|^3.1",
+        "phpstan/extension-installer": "^1.1",
+        "phpstan/phpstan-deprecation-rules": "^1.0|^2.0",
+        "phpstan/phpstan-phpunit": "^1.0|^2.0",
+        "phpunit/phpunit": "^9.5|^10.5|^11.5.3",
+        "spatie/laravel-ray": "^1.26"
+    },
+    "autoload": {
+        "psr-4": {
+            "Creagia\\FilamentCodeField\\": "src",
+            "Creagia\\FilamentCodeField\\Database\\Factories\\": "database/factories"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Creagia\\FilamentCodeField\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "pint": "vendor/bin/pint",
+        "test:pest": "vendor/bin/pest",
+        "test:phpstan": "vendor/bin/phpstan analyse",
+        "test": [
+            "@test:pest",
+            "@test:phpstan"
+        ]
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "composer/package-versions-deprecated": true,
+            "pestphp/pest-plugin": true,
+            "phpstan/extension-installer": true
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Creagia\\FilamentCodeField\\FilamentCodeFieldServiceProvider"
+            ],
+            "aliases": {
+                "FilamentCodeField": "Creagia\\FilamentCodeField\\Facades\\FilamentCodeField"
+            }
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

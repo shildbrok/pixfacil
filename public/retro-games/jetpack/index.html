@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+	<meta charset="utf-8" />
+	<title>Jetpack Cash — Hyperflight</title>
+	<link rel="stylesheet" type="text/css" href="css/styles.css" />
+	<link rel="icon" href="/retro-games/_media/jetpack/icon.png" />
+	<meta name="viewport" content="width=device-width, height=device-height, user-scalable=no, initial-scale=1, minimum-scale=1, maximum-scale=1" />
+	<meta name="robots" content="noindex,nofollow" />
+
+	<script>
+		function alertMessage(type, message) {
+			alert(message);
+		}
+	</script>
+
+	<!--
+		jQuery é servido daqui (_arcade/jquery.min.js) e não de CDN: o game3.js
+		usa $.ajax para liquidar a rodada, e uma partida valendo dinheiro não
+		deveria depender de rede de terceiros para pagar o jogador.
+
+		Precisa vir ANTES do bloco de ajaxSetup abaixo. O game3.js pode ficar
+		depois porque as chamadas dele rodam dentro de DOMContentLoaded.
+	-->
+	<script type="text/javascript" src="../_core/jquery.min.js"></script>
+
+	<script>
+		/*
+		 * game3.js faz POST em /api/retro/engine/jetpack/win via $.ajax, que não
+		 * manda o token CSRF por conta própria. Registrando o header aqui, os
+		 * POST do jogo continuam passando pela proteção CSRF do Laravel.
+		 */
+		(function () {
+			var csrf = new URLSearchParams(window.location.search).get('csrf') || '';
+			$.ajaxSetup({ headers: { 'X-CSRF-TOKEN': csrf } });
+		}());
+	</script>
+
+	<script type="text/javascript" src="engine/phaser-3.24.1.min.js"></script>
+	<script type="text/javascript" src="game3.js"></script>
+
+	<style>
+		* {
+			font-family: 'jetpackia';
+		}
+
+		.container-btn-stop-game {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			width: fit-content;
+			height: fit-content;
+			display: none;
+			z-index: 10;
+		}
+
+		.cont-stop-game {
+			position: relative;
+			width: 100%;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
+
+		.btn-stop-game {
+			width: 5.25rem;
+			height: fit-content;
+			background-color: #F95F5F;
+			border-radius: 10px;
+			box-shadow: 0 0 10px 0 #000;
+			color: #fff;
+			font-family: monospace;
+			z-index: 10;
+			transition: .3s;
+			animation: pulse 1s infinite;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			cursor: pointer;
+			user-select: none;
+			text-align: center;
+			font-size: 1.45rem;
+			font-weight: bold;
+			opacity: .85;
+			padding: .45rem 1rem;
+		}
+
+		.btn-stop-game svg {
+			width: 3.5rem;
+			height: auto;
+			transition: .3s;
+			transform: rotate(330deg);
+		}
+
+		.btn-stop-game svg path {
+			fill: #fff;
+		}
+
+		.btn-stop-game:hover {
+			transform: scale(1.1);
+			background-color: #8BFD6A;
+			opacity: 1;
+		}
+
+		.container-boxes-info {
+			position: absolute;
+			bottom: 20%;
+			left: 0;
+			width: 100%;
+			height: fit-content;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			flex-direction: column;
+			z-index: 10;
+			user-select: none;
+			pointer-events: none;
+		}
+
+		.container-fill-meta {
+			width: 100%;
+			height: fit-content;
+		}
+
+		.into-container-fill-meta {
+			position: relative;
+			width: 100%;
+			height: fit-content;
+			z-index: 999;
+		}
+
+		.meta-card {
+			width: fit-content;
+			background-color: #F95F5F;
+			color: #fff;
+			font-family: monospace;
+			z-index: 10;
+			padding: .25rem 2rem;
+			margin: .15rem 0;
+			text-align: center;
+			border-radius: .25rem;
+			box-shadow: 0 0 12px 0 rgba(0, 0, 0, .8);
+			font-size: 1rem;
+		}
+
+		.container-fill-gain {
+			width: 100%;
+			height: fit-content;
+		}
+
+		.into-container-fill-gain {
+			position: relative;
+			width: 100%;
+			height: fit-content;
+			z-index: 999;
+		}
+
+		.meta-card-gain {
+			width: fit-content;
+			background-color: #3A67E1;
+			color: #fff;
+			font-family: monospace;
+			z-index: 10;
+			padding: .25rem 2rem;
+			margin: .15rem 0;
+			text-align: center;
+			border-radius: .25rem;
+			box-shadow: 0 0 12px 0 rgba(0, 0, 0, .8);
+			font-size: 1rem;
+		}
+	</style>
+
+<link rel="stylesheet" href="../_core/originals-overlay.css?v=15">
+</head>
+
+<body>
+	<div class="fontLoader" style="font-family: jetpackia">-</div>
+	<img id="rotate_image" src="img/HB_ic_rotateScreen.png" alt="rotate_screen" class="center" />
+	<div id="content">
+		<div id="phaser-canvas"></div>
+		<div class="container-btn-stop-game" style="display: none;">
+			<div class="cont-stop-game">
+				<div class="btn-stop-game">
+					<svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="512.000000pt" height="512.000000pt" viewBox="0 0 512.000000 512.000000" preserveAspectRatio="xMidYMid meet">
+						<g transform="translate(0.000000,512.000000) scale(0.100000,-0.100000)" fill="#000000" stroke="none">
+							<path d="M2103 4671 c-254 -73 -423 -294 -423 -554 0 -140 40 -262 118 -360
+									l30 -38 12 38 c25 76 74 155 131 207 140 130 333 160 506 79 79 -37 181 -140
+									213 -215 14 -32 28 -58 32 -58 14 0 68 104 89 170 87 279 -48 578 -316 700
+									-33 15 -84 33 -113 39 -77 16 -207 12 -279 -8z" />
+							<path d="M2187 3903 c-62 -21 -131 -83 -165 -147 l-27 -51 -5 -713 -5 -712
+									-90 142 c-102 162 -146 210 -212 232 -148 50 -305 -19 -358 -157 -38 -99 -32
+									-121 219 -797 126 -338 245 -646 264 -685 147 -295 429 -508 752 -569 104 -20
+									272 -20 383 -1 380 66 704 351 820 720 45 144 49 198 45 685 l-3 455 -27 55
+									c-68 139 -175 213 -340 235 -43 6 -48 9 -59 43 -45 137 -167 225 -329 238
+									l-87 6 -12 34 c-18 49 -106 141 -163 170 -30 15 -82 29 -133 36 l-84 10 -3
+									282 c-3 269 -4 283 -26 331 -62 135 -219 205 -355 158z" />
+						</g>
+					</svg>
+					<span>Encerrar aposta</span>
+				</div>
+			</div>
+		</div>
+		<div class="container-boxes-info">
+			<div class="container-fill-gain" style="display:none">
+				<div class="into-container-fill-gain">
+					<div class="meta-card-gain">
+						<h3>Ganhos R$ <span class="gain">0</span></h3>
+					</div>
+				</div>
+			</div>
+			<div class="container-fill-meta" style="display:none">
+				<div class="into-container-fill-meta">
+					<div class="meta-card">
+						<h3>Sua meta é de R$ <span class="meta"></span></h3>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+<script src="../_core/originals-overlay.js?v=15"></script>
+</body>
+
+</html>

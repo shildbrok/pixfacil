@@ -1,0 +1,456 @@
+.ghost {
+	margin: 0px;
+	position: absolute;
+	z-index: 2;
+}
+* {
+	font-family: "Press Start 2P", sans-serif;
+}
+body {
+	margin: 0px;
+	overflow: hidden;
+}
+.overflow-mask {
+	background-color: rgb(0, 0, 0);
+	color: rgb(255, 255, 255);
+	display: flex;
+	height: 100vh;
+	justify-content: center;
+	margin: 0px;
+	overflow: hidden;
+	position: relative;
+	touch-action: manipulation;
+}
+.backdrop {
+	position: absolute;
+	visibility: hidden;
+}
+.fps-display {
+	position: absolute;
+	right: 10px;
+	top: 10px;
+	visibility: hidden;
+}
+.preload-div {
+	align-items: baseline;
+	bottom: 0px;
+	display: flex;
+	flex-wrap: wrap-reverse;
+	position: absolute;
+	visibility: hidden;
+}
+.header-buttons {
+	margin: 16px;
+	position: absolute;
+	width: 100%;
+	z-index: 2;
+}
+.header-buttons button {
+	background: none;
+	border: 0px;
+	color: rgb(255, 255, 255);
+	cursor: pointer;
+	outline: none;
+	padding: 0px;
+}
+.header-buttons button .material-icons {
+	font-size: 40px;
+}
+.paused-text {
+	text-align: center;
+	align-items: center;
+	display: flex;
+	flex-direction: column;
+	gap: 2rem;
+	font-size: 50px;
+	height: 100%;
+	justify-content: center;
+	left: 0px;
+	position: absolute;
+	user-select: none;
+	visibility: hidden;
+	width: 100%;
+	z-index: 1;
+}
+.game-ui {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+.game-ui .one-up {
+	animation: 0.6s ease 0s infinite normal none running blink;
+}
+@keyframes blink {
+	0% {
+		opacity: 0;
+	}
+	49% {
+		opacity: 0;
+	}
+	50% {
+		opacity: 1;
+	}
+}
+.game-ui .row {
+	display: flex;
+}
+.game-ui .top {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+}
+.game-ui .top ._25 {
+	width: 25%;
+}
+.game-ui .top ._50 {
+	width: 50%;
+}
+#checkout-button {
+	white-space: nowrap;
+	background-color: yellow;
+	border-radius: 8px;
+	width: 100%;
+	padding: 0.5rem 0;
+	font-size: 1.2em;
+}
+.game-ui .bottom {
+	justify-content: space-between;
+}
+.game-ui .bottom .extra-lives {
+	align-items: flex-start;
+	display: flex;
+}
+.game-ui .bottom .fruit-display {
+	display: flex;
+	flex-direction: row-reverse;
+}
+@media (orientation: landscape) {
+	.game-ui {
+		height: 100%;
+	}
+}
+@media (orientation: portrait) {
+	.game-ui {
+		height: 66%;
+	}
+}
+.loading-cover {
+	background: rgb(255, 223, 0);
+	height: 100vh;
+	position: absolute;
+	top: 0px;
+	width: 50vw;
+	z-index: 4;
+}
+.left {
+	left: 0px;
+	transition: left 0.5s ease 0.5s;
+}
+.right {
+	right: 0px;
+	transition: right 0.5s ease 0.5s;
+}
+.main-menu-container {
+	align-items: center;
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	left: 0px;
+	opacity: 0;
+	position: absolute;
+	transition: opacity 0.25s ease 0s;
+	visibility: hidden;
+	width: 100%;
+	z-index: 5;
+}
+.logo {
+	height: 200px;
+	margin-top: 25vh;
+}
+.game-start {
+	background-color: rgb(252, 199, 63);
+	border: 5px solid rgb(35, 31, 32);
+	border-radius: 10px;
+	box-shadow: rgb(238, 42, 41) 5px 5px;
+	color: rgb(35, 31, 32);
+	cursor: pointer;
+	font-size: 48px;
+	outline: none;
+	padding: 16px;
+}
+.game-start:active {
+	box-shadow: none;
+	transform: translateX(5px) translateY(5px);
+}
+.game-start:disabled {
+	cursor: default;
+}
+.loading-container {
+	background-color: rgb(0, 0, 0);
+	border: 5px solid rgb(33, 33, 255);
+	border-radius: 10px;
+	height: 48px;
+	left: 50%;
+	position: absolute;
+	top: 50%;
+	transform: translateX(-50%) translateY(-50%);
+	transition: opacity 0.5s ease 1s;
+	width: 500px;
+	z-index: 5;
+}
+.loading-pacman {
+	animation: 0.3s steps(4) 0s infinite normal none running loading-animation;
+	background-color: rgb(0, 0, 0);
+	background-image: url("../app/style/graphics/spriteSheets/characters/pacman/pacman_right.svg");
+	background-size: 192px;
+	border-radius: 10px;
+	height: 48px;
+	position: absolute;
+	transition: left 1s ease 0s;
+	width: 48px;
+	z-index: 6;
+}
+@keyframes loading-animation {
+	100% {
+		background-position: -192px center;
+	}
+}
+.loading-dot-mask {
+	background-color: rgb(0, 0, 0);
+	border-radius: 10px;
+	height: 48px;
+	left: 0px;
+	position: absolute;
+	top: 0px;
+	transition: width 1s ease 0s;
+	z-index: -1;
+}
+.loading-dot {
+	background-image: url("../app/style/graphics/spriteSheets/pickups/pacdot.svg");
+	height: 6px;
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 6px;
+	z-index: -2;
+}
+._5 {
+	left: 5%;
+}
+._10 {
+	left: 10%;
+}
+._15 {
+	left: 15%;
+}
+._20 {
+	left: 20%;
+}
+._25 {
+	left: 25%;
+}
+._30 {
+	left: 30%;
+}
+._35 {
+	left: 35%;
+}
+._40 {
+	left: 40%;
+}
+._45 {
+	left: 45%;
+}
+._50 {
+	left: 50%;
+}
+._55 {
+	left: 55%;
+}
+._60 {
+	left: 60%;
+}
+._65 {
+	left: 65%;
+}
+._70 {
+	left: 70%;
+}
+._75 {
+	left: 75%;
+}
+._80 {
+	left: 80%;
+}
+._85 {
+	left: 85%;
+}
+._90 {
+	left: 90%;
+}
+._95 {
+	left: 95%;
+}
+.movement-buttons {
+	user-select: none;
+	align-items: center;
+	bottom: 0px;
+	display: flex;
+	flex-direction: column;
+	height: 34%;
+	left: 0px;
+	position: fixed;
+	width: 100%;
+}
+.movement-buttons .row {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+}
+.movement-buttons button {
+	background: transparent;
+	border: 3px solid rgb(33, 33, 255);
+	border-radius: 5px;
+	color: rgb(33, 33, 255);
+	/* height: 100px;
+	width: 100px; */
+	outline: none;
+	padding: 0px;
+	user-select: none;
+}
+.movement-buttons button:active {
+	background: radial-gradient(closest-side, rgba(255, 255, 255, 0.25), transparent);
+}
+.movement-buttons .button-up {
+	border-bottom: 0px;
+	border-bottom-left-radius: 0px;
+	border-bottom-right-radius: 0px;
+}
+.movement-buttons .button-left {
+	border-bottom-right-radius: 0px;
+	border-right: 0px;
+	border-top-right-radius: 0px;
+}
+.movement-buttons .button-right {
+	border-bottom-left-radius: 0px;
+	border-left: 0px;
+	border-top-left-radius: 0px;
+}
+.movement-buttons .button-down {
+	border-top: 0px;
+	border-top-left-radius: 0px;
+	border-top-right-radius: 0px;
+}
+.movement-buttons .material-icons {
+	font-size: 10em;
+	margin: -3px;
+}
+@media (orientation: landscape) {
+	.movement-buttons {
+		visibility: hidden;
+	}
+}
+@media only screen and (max-width: 600px) {
+	.logo {
+		height: 80px;
+		margin-top: 25vh;
+	}
+	.loading-container {
+		background-color: rgb(0, 0, 0);
+		border: 5px solid rgb(33, 33, 255);
+		border-radius: 10px;
+		height: 48px;
+		left: 50%;
+		position: absolute;
+		top: 50%;
+		transform: translateX(-50%) translateY(-50%);
+		transition: opacity 0.5s ease 1s;
+		width: 90%;
+		z-index: 5;
+	}
+	.game-start {
+		background-color: rgb(252, 199, 63);
+		border: 5px solid rgb(35, 31, 32);
+		border-radius: 10px;
+		box-shadow: rgb(238, 42, 41) 5px 5px;
+		color: rgb(35, 31, 32);
+		cursor: pointer;
+		outline: none;
+		padding: 16px;
+	}
+}
+.error-message {
+	color: rgb(35, 31, 32);
+	opacity: 0;
+	position: absolute;
+	top: 30vh;
+	transition: opacity 0.5s ease 0s;
+	visibility: hidden;
+	width: 50vw;
+	z-index: 4;
+}
+.error-message .error-pacman {
+	animation: 1.5s steps(12) 0s infinite normal none running error-animation;
+	background-image: url("../app/style/graphics/spriteSheets/characters/pacman/pacman_error.svg");
+	background-size: 576px;
+	height: 48px;
+	margin-left: 10px;
+	width: 48px;
+	z-index: 6;
+}
+@keyframes error-animation {
+	100% {
+		background-position: -576px center;
+	}
+}
+.error-message .header {
+	display: flex;
+	font-size: 50px;
+	margin-bottom: 30px;
+}
+.error-message .body {
+	font-size: 20px;
+	line-height: 1.25;
+}
+.maze-cover {
+	background: rgb(0, 0, 0);
+	height: 100%;
+	position: absolute;
+	visibility: hidden;
+	width: 100%;
+	z-index: 3;
+}
+.maze {
+	margin: 0px auto;
+	position: relative;
+}
+.maze-img {
+	position: absolute;
+	user-select: none;
+	width: 100%;
+}
+.maze-row {
+	display: flex;
+}
+.dot-container {
+	height: 100%;
+	position: absolute;
+	width: 100%;
+}
+.pacman {
+	margin: 0px;
+	position: absolute;
+	z-index: 1;
+}
+.power-pellet {
+	animation: 0.3s ease 0s infinite normal none running blink;
+}
+@keyframes blink {
+	0% {
+		opacity: 0;
+	}
+	49% {
+		opacity: 0;
+	}
+	50% {
+		opacity: 1;
+	}
+}

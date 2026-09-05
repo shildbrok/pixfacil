@@ -1,0 +1,714 @@
+{
+  "_BXdM-2bx.js": {
+    "file": "assets/BXdM-2bx.js",
+    "name": "CookiesComponent",
+    "imports": [
+      "_vendor-Bf8lAvd6.js",
+      "_vendor-BWf0vErh.js",
+      "resources/js/app.js",
+      "_DZ_o6k3N.js"
+    ]
+  },
+  "_BpKLDskZ.js": {
+    "file": "assets/BpKLDskZ.js",
+    "name": "AuthLayout",
+    "imports": [
+      "_vendor-BWf0vErh.js",
+      "_BXdM-2bx.js",
+      "resources/js/app.js",
+      "_vendor-Bf8lAvd6.js"
+    ]
+  },
+  "_CcCEsNlA.js": {
+    "file": "assets/CcCEsNlA.js",
+    "name": "BaseLayout",
+    "imports": [
+      "_vendor-BWf0vErh.js",
+      "resources/js/app.js",
+      "_BXdM-2bx.js",
+      "_vendor-Bf8lAvd6.js"
+    ]
+  },
+  "_D9IzGAIx.js": {
+    "file": "assets/D9IzGAIx.js",
+    "name": "LoadingComponent",
+    "imports": [
+      "resources/js/app.js",
+      "_vendor-Bf8lAvd6.js"
+    ]
+  },
+  "_DZ_o6k3N.js": {
+    "file": "assets/DZ_o6k3N.js",
+    "name": "playFiverGate"
+  },
+  "_dteX892p.js": {
+    "file": "assets/dteX892p.js",
+    "name": "HeaderComponent",
+    "imports": [
+      "resources/js/app.js",
+      "_vendor-Bf8lAvd6.js"
+    ]
+  },
+  "_vendor-BWf0vErh.js": {
+    "file": "assets/vendor-BWf0vErh.js",
+    "name": "vendor",
+    "imports": [
+      "_vendor-Bf8lAvd6.js"
+    ]
+  },
+  "_vendor-Bf8lAvd6.js": {
+    "file": "assets/vendor-Bf8lAvd6.js",
+    "name": "vendor-vue"
+  },
+  "lang/en.json": {
+    "file": "assets/HzqnT958.js",
+    "name": "en",
+    "src": "lang/en.json",
+    "isDynamicEntry": true
+  },
+  "lang/es.json": {
+    "file": "assets/pqw3BrP0.js",
+    "name": "es",
+    "src": "lang/es.json",
+    "isDynamicEntry": true
+  },
+  "lang/php_en.json": {
+    "file": "assets/jLU8NBuC.js",
+    "name": "php_en",
+    "src": "lang/php_en.json",
+    "isDynamicEntry": true
+  },
+  "lang/php_es.json": {
+    "file": "assets/DhSK7Pja.js",
+    "name": "php_es",
+    "src": "lang/php_es.json",
+    "isDynamicEntry": true
+  },
+  "lang/php_pt_BR.json": {
+    "file": "assets/Br2fVSc1.js",
+    "name": "php_pt_BR",
+    "src": "lang/php_pt_BR.json",
+    "isDynamicEntry": true
+  },
+  "lang/pt_BR.json": {
+    "file": "assets/B873_H4C.js",
+    "name": "pt_BR",
+    "src": "lang/pt_BR.json",
+    "isDynamicEntry": true
+  },
+  "resources/css/webfonts/fa-brands-400.woff2": {
+    "file": "assets/zbqcXWxQ.woff2",
+    "src": "resources/css/webfonts/fa-brands-400.woff2"
+  },
+  "resources/css/webfonts/fa-regular-400.woff2": {
+    "file": "assets/B73izLXF.woff2",
+    "src": "resources/css/webfonts/fa-regular-400.woff2"
+  },
+  "resources/css/webfonts/fa-solid-900.woff2": {
+    "file": "assets/C_4vbGZw.woff2",
+    "src": "resources/css/webfonts/fa-solid-900.woff2"
+  },
+  "resources/css/webfonts/fa-v4compatibility.woff2": {
+    "file": "assets/C9RhG_FT.woff2",
+    "src": "resources/css/webfonts/fa-v4compatibility.woff2"
+  },
+  "resources/js/Pages/Auth/ForgotPassword.vue": {
+    "file": "assets/BbgENU6r.js",
+    "name": "ForgotPassword",
+    "src": "resources/js/Pages/Auth/ForgotPassword.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_vendor-BWf0vErh.js",
+      "resources/js/app.js",
+      "_BpKLDskZ.js",
+      "_vendor-Bf8lAvd6.js",
+      "_D9IzGAIx.js",
+      "_BXdM-2bx.js",
+      "_DZ_o6k3N.js"
+    ]
+  },
+  "resources/js/Pages/Auth/LoginPage.vue": {
+    "file": "assets/CWq_T4Ne.js",
+    "name": "LoginPage",
+    "src": "resources/js/Pages/Auth/LoginPage.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_vendor-BWf0vErh.js",
+      "resources/js/app.js",
+      "_BpKLDskZ.js",
+      "_vendor-Bf8lAvd6.js",
+      "_D9IzGAIx.js",
+      "_BXdM-2bx.js",
+      "_DZ_o6k3N.js"
+    ]
+  },
+  "resources/js/Pages/Auth/RegisterPage.vue": {
+    "file": "assets/BOXdFqms.js",
+    "name": "RegisterPage",
+    "src": "resources/js/Pages/Auth/RegisterPage.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_vendor-BWf0vErh.js",
+      "resources/js/app.js",
+      "_BpKLDskZ.js",
+      "_vendor-Bf8lAvd6.js",
+      "_D9IzGAIx.js",
+      "_BXdM-2bx.js",
+      "_DZ_o6k3N.js"
+    ]
+  },
+  "resources/js/Pages/Auth/ResetPassword.vue": {
+    "file": "assets/CzoC4G_L.js",
+    "name": "ResetPassword",
+    "src": "resources/js/Pages/Auth/ResetPassword.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_vendor-BWf0vErh.js",
+      "resources/js/app.js",
+      "_BpKLDskZ.js",
+      "_vendor-Bf8lAvd6.js",
+      "_D9IzGAIx.js",
+      "_BXdM-2bx.js",
+      "_DZ_o6k3N.js"
+    ]
+  },
+  "resources/js/Pages/Cassino/CasinoPlayPage.vue": {
+    "file": "assets/BrKBruiA.js",
+    "name": "CasinoPlayPage",
+    "src": "resources/js/Pages/Cassino/CasinoPlayPage.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_DZ_o6k3N.js",
+      "_vendor-Bf8lAvd6.js",
+      "_vendor-BWf0vErh.js"
+    ]
+  },
+  "resources/js/Pages/Cassino/CassinoListPage.vue": {
+    "file": "assets/DvGQ2SUz.js",
+    "name": "CassinoListPage",
+    "src": "resources/js/Pages/Cassino/CassinoListPage.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_CcCEsNlA.js",
+      "resources/js/app.js",
+      "_BXdM-2bx.js",
+      "_vendor-Bf8lAvd6.js",
+      "_vendor-BWf0vErh.js",
+      "_DZ_o6k3N.js"
+    ]
+  },
+  "resources/js/Pages/Cassino/CassinoSearch.vue": {
+    "file": "assets/CgXE-zDf.js",
+    "name": "CassinoSearch",
+    "src": "resources/js/Pages/Cassino/CassinoSearch.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_vendor-BWf0vErh.js",
+      "_CcCEsNlA.js",
+      "resources/js/app.js",
+      "_BXdM-2bx.js",
+      "_vendor-Bf8lAvd6.js",
+      "_DZ_o6k3N.js"
+    ]
+  },
+  "resources/js/Pages/Cassino/casinoPlayPageSport.vue": {
+    "file": "assets/CRpy2Fu-.js",
+    "name": "casinoPlayPageSport",
+    "src": "resources/js/Pages/Cassino/casinoPlayPageSport.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_DZ_o6k3N.js",
+      "_vendor-Bf8lAvd6.js",
+      "_vendor-BWf0vErh.js"
+    ]
+  },
+  "resources/js/Pages/Funil/CaixaSupresa.vue": {
+    "file": "assets/NJM1p3oa.js",
+    "name": "CaixaSupresa",
+    "src": "resources/js/Pages/Funil/CaixaSupresa.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_vendor-BWf0vErh.js",
+      "resources/js/app.js",
+      "_CcCEsNlA.js",
+      "_vendor-Bf8lAvd6.js",
+      "_BXdM-2bx.js",
+      "_DZ_o6k3N.js"
+    ]
+  },
+  "resources/js/Pages/Home/BonusPage.vue": {
+    "file": "assets/cNyobj3c.js",
+    "name": "BonusPage",
+    "src": "resources/js/Pages/Home/BonusPage.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_vendor-Bf8lAvd6.js",
+      "_CcCEsNlA.js",
+      "resources/js/app.js",
+      "_vendor-BWf0vErh.js",
+      "_BXdM-2bx.js",
+      "_DZ_o6k3N.js"
+    ]
+  },
+  "resources/js/Pages/Home/HomePage.vue": {
+    "file": "assets/DfBY_3xy.js",
+    "name": "HomePage",
+    "src": "resources/js/Pages/Home/HomePage.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_vendor-BWf0vErh.js",
+      "_vendor-Bf8lAvd6.js",
+      "_CcCEsNlA.js",
+      "resources/js/app.js",
+      "_DZ_o6k3N.js",
+      "_D9IzGAIx.js",
+      "_BXdM-2bx.js"
+    ]
+  },
+  "resources/js/Pages/Home/MissoesPage.vue": {
+    "file": "assets/CUJAu9fs.js",
+    "name": "MissoesPage",
+    "src": "resources/js/Pages/Home/MissoesPage.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_CcCEsNlA.js",
+      "_D9IzGAIx.js",
+      "_dteX892p.js",
+      "resources/js/app.js",
+      "_vendor-Bf8lAvd6.js",
+      "_vendor-BWf0vErh.js",
+      "_BXdM-2bx.js",
+      "_DZ_o6k3N.js"
+    ]
+  },
+  "resources/js/Pages/Home/PromotionPage.vue": {
+    "file": "assets/Dq-qfsL6.js",
+    "name": "PromotionPage",
+    "src": "resources/js/Pages/Home/PromotionPage.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_CcCEsNlA.js",
+      "_D9IzGAIx.js",
+      "_dteX892p.js",
+      "resources/js/app.js",
+      "_vendor-Bf8lAvd6.js",
+      "_vendor-BWf0vErh.js",
+      "_BXdM-2bx.js",
+      "_DZ_o6k3N.js"
+    ]
+  },
+  "resources/js/Pages/Home/SportingPage.vue": {
+    "file": "assets/CQCuHe7V.js",
+    "name": "SportingPage",
+    "src": "resources/js/Pages/Home/SportingPage.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_vendor-Bf8lAvd6.js",
+      "_CcCEsNlA.js",
+      "resources/js/app.js",
+      "_vendor-BWf0vErh.js",
+      "_BXdM-2bx.js",
+      "_DZ_o6k3N.js"
+    ]
+  },
+  "resources/js/Pages/Home/SupportCenterPage.vue": {
+    "file": "assets/BuozsPm5.js",
+    "name": "SupportCenterPage",
+    "src": "resources/js/Pages/Home/SupportCenterPage.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_CcCEsNlA.js",
+      "resources/js/app.js",
+      "_vendor-BWf0vErh.js",
+      "_vendor-Bf8lAvd6.js",
+      "_BXdM-2bx.js",
+      "_DZ_o6k3N.js"
+    ]
+  },
+  "resources/js/Pages/Home/VipPage.vue": {
+    "file": "assets/CbdU5fz0.js",
+    "name": "VipPage",
+    "src": "resources/js/Pages/Home/VipPage.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_CcCEsNlA.js",
+      "_D9IzGAIx.js",
+      "resources/js/app.js",
+      "_vendor-BWf0vErh.js",
+      "_vendor-Bf8lAvd6.js",
+      "_BXdM-2bx.js",
+      "_DZ_o6k3N.js"
+    ]
+  },
+  "resources/js/Pages/Home/baixeAPP.vue": {
+    "file": "assets/Bn1BVeCD.js",
+    "name": "baixeAPP",
+    "src": "resources/js/Pages/Home/baixeAPP.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_vendor-Bf8lAvd6.js",
+      "_CcCEsNlA.js",
+      "resources/js/app.js",
+      "_vendor-BWf0vErh.js",
+      "_BXdM-2bx.js",
+      "_DZ_o6k3N.js"
+    ]
+  },
+  "resources/js/Pages/Profile/AccountBets.vue": {
+    "file": "assets/CHX0MR1k.js",
+    "name": "AccountBets",
+    "src": "resources/js/Pages/Profile/AccountBets.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_CcCEsNlA.js",
+      "_D9IzGAIx.js",
+      "resources/js/app.js",
+      "_vendor-Bf8lAvd6.js",
+      "_vendor-BWf0vErh.js",
+      "_BXdM-2bx.js",
+      "_DZ_o6k3N.js"
+    ]
+  },
+  "resources/js/Pages/Profile/AccountData.vue": {
+    "file": "assets/DAKe-l6x.js",
+    "name": "AccountData",
+    "src": "resources/js/Pages/Profile/AccountData.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_CcCEsNlA.js",
+      "_D9IzGAIx.js",
+      "resources/js/app.js",
+      "_vendor-Bf8lAvd6.js",
+      "_vendor-BWf0vErh.js",
+      "_BXdM-2bx.js",
+      "_DZ_o6k3N.js"
+    ]
+  },
+  "resources/js/Pages/Profile/AccountLimitsPage.vue": {
+    "file": "assets/HrO8kSJG.js",
+    "name": "AccountLimitsPage",
+    "src": "resources/js/Pages/Profile/AccountLimitsPage.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_CcCEsNlA.js",
+      "_D9IzGAIx.js",
+      "resources/js/app.js",
+      "_vendor-Bf8lAvd6.js",
+      "_vendor-BWf0vErh.js",
+      "_BXdM-2bx.js",
+      "_DZ_o6k3N.js"
+    ]
+  },
+  "resources/js/Pages/Profile/Affiliate.vue": {
+    "file": "assets/DmLYDwrc.js",
+    "name": "Affiliate",
+    "src": "resources/js/Pages/Profile/Affiliate.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_CcCEsNlA.js",
+      "_D9IzGAIx.js",
+      "resources/js/app.js",
+      "_vendor-BWf0vErh.js",
+      "_vendor-Bf8lAvd6.js",
+      "_BXdM-2bx.js",
+      "_DZ_o6k3N.js"
+    ]
+  },
+  "resources/js/Pages/Profile/AffiliateWithdrawPage.vue": {
+    "file": "assets/BSvP8OpL.js",
+    "name": "AffiliateWithdrawPage",
+    "src": "resources/js/Pages/Profile/AffiliateWithdrawPage.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_vendor-Bf8lAvd6.js",
+      "_CcCEsNlA.js",
+      "resources/js/app.js",
+      "_vendor-BWf0vErh.js",
+      "_D9IzGAIx.js",
+      "_BXdM-2bx.js",
+      "_DZ_o6k3N.js"
+    ]
+  },
+  "resources/js/Pages/Profile/BalanceDetails.vue": {
+    "file": "assets/D6TkPmQi.js",
+    "name": "BalanceDetails",
+    "src": "resources/js/Pages/Profile/BalanceDetails.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_vendor-BWf0vErh.js",
+      "resources/js/app.js",
+      "_vendor-Bf8lAvd6.js"
+    ]
+  },
+  "resources/js/Pages/Profile/DepositPage.vue": {
+    "file": "assets/BSsRH4R0.js",
+    "name": "DepositPage",
+    "src": "resources/js/Pages/Profile/DepositPage.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_CcCEsNlA.js",
+      "_D9IzGAIx.js",
+      "_vendor-BWf0vErh.js",
+      "resources/js/app.js",
+      "_vendor-Bf8lAvd6.js",
+      "_BXdM-2bx.js",
+      "_DZ_o6k3N.js"
+    ]
+  },
+  "resources/js/Pages/Profile/ProfilePage.vue": {
+    "file": "assets/Ds7M7WYZ.js",
+    "name": "ProfilePage",
+    "src": "resources/js/Pages/Profile/ProfilePage.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_CcCEsNlA.js",
+      "_D9IzGAIx.js",
+      "resources/js/app.js",
+      "_vendor-Bf8lAvd6.js",
+      "_vendor-BWf0vErh.js",
+      "_BXdM-2bx.js",
+      "_DZ_o6k3N.js"
+    ]
+  },
+  "resources/js/Pages/Profile/RecentsPage.vue": {
+    "file": "assets/DMp2SOkY.js",
+    "name": "RecentsPage",
+    "src": "resources/js/Pages/Profile/RecentsPage.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_CcCEsNlA.js",
+      "_D9IzGAIx.js",
+      "_dteX892p.js",
+      "resources/js/app.js",
+      "_BXdM-2bx.js",
+      "_vendor-Bf8lAvd6.js",
+      "_vendor-BWf0vErh.js",
+      "_DZ_o6k3N.js"
+    ]
+  },
+  "resources/js/Pages/Profile/TransactionPage.vue": {
+    "file": "assets/B8j7fZWy.js",
+    "name": "TransactionPage",
+    "src": "resources/js/Pages/Profile/TransactionPage.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_CcCEsNlA.js",
+      "_D9IzGAIx.js",
+      "resources/js/app.js",
+      "_vendor-Bf8lAvd6.js",
+      "_vendor-BWf0vErh.js",
+      "_BXdM-2bx.js",
+      "_DZ_o6k3N.js"
+    ]
+  },
+  "resources/js/Pages/Profile/VerificationPage.vue": {
+    "file": "assets/IX4ewBSy.js",
+    "name": "VerificationPage",
+    "src": "resources/js/Pages/Profile/VerificationPage.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_CcCEsNlA.js",
+      "_D9IzGAIx.js",
+      "resources/js/app.js",
+      "_vendor-Bf8lAvd6.js",
+      "_vendor-BWf0vErh.js",
+      "_BXdM-2bx.js",
+      "_DZ_o6k3N.js"
+    ]
+  },
+  "resources/js/Pages/Profile/WithdrawPage.vue": {
+    "file": "assets/K3B1n_Zq.js",
+    "name": "WithdrawPage",
+    "src": "resources/js/Pages/Profile/WithdrawPage.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_vendor-Bf8lAvd6.js",
+      "_CcCEsNlA.js",
+      "resources/js/app.js",
+      "_vendor-BWf0vErh.js",
+      "_D9IzGAIx.js",
+      "_BXdM-2bx.js",
+      "_DZ_o6k3N.js"
+    ]
+  },
+  "resources/js/Pages/Terms/BettingTerms.vue": {
+    "file": "assets/jx08ffvc.js",
+    "name": "BettingTerms",
+    "src": "resources/js/Pages/Terms/BettingTerms.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_CcCEsNlA.js",
+      "resources/js/app.js",
+      "_vendor-Bf8lAvd6.js",
+      "_vendor-BWf0vErh.js",
+      "_BXdM-2bx.js",
+      "_DZ_o6k3N.js"
+    ]
+  },
+  "resources/js/Pages/Terms/KycPolicy.vue": {
+    "file": "assets/vx3qkJOT.js",
+    "name": "KycPolicy",
+    "src": "resources/js/Pages/Terms/KycPolicy.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_CcCEsNlA.js",
+      "resources/js/app.js",
+      "_vendor-Bf8lAvd6.js",
+      "_vendor-BWf0vErh.js",
+      "_BXdM-2bx.js",
+      "_DZ_o6k3N.js"
+    ]
+  },
+  "resources/js/Pages/Terms/LgpdTerms.vue": {
+    "file": "assets/0PWf7Ts-.js",
+    "name": "LgpdTerms",
+    "src": "resources/js/Pages/Terms/LgpdTerms.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_CcCEsNlA.js",
+      "resources/js/app.js",
+      "_vendor-Bf8lAvd6.js",
+      "_vendor-BWf0vErh.js",
+      "_BXdM-2bx.js",
+      "_DZ_o6k3N.js"
+    ]
+  },
+  "resources/js/Pages/Terms/Pldpolicy.vue": {
+    "file": "assets/Bf0zs0NY.js",
+    "name": "Pldpolicy",
+    "src": "resources/js/Pages/Terms/Pldpolicy.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_CcCEsNlA.js",
+      "resources/js/app.js",
+      "_vendor-Bf8lAvd6.js",
+      "_vendor-BWf0vErh.js",
+      "_BXdM-2bx.js",
+      "_DZ_o6k3N.js"
+    ]
+  },
+  "resources/js/Pages/Terms/PrivacyTerms.vue": {
+    "file": "assets/BUuV0XGO.js",
+    "name": "PrivacyTerms",
+    "src": "resources/js/Pages/Terms/PrivacyTerms.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_CcCEsNlA.js",
+      "resources/js/app.js",
+      "_vendor-Bf8lAvd6.js",
+      "_vendor-BWf0vErh.js",
+      "_BXdM-2bx.js",
+      "_DZ_o6k3N.js"
+    ]
+  },
+  "resources/js/Pages/Terms/ReferallTerms.vue": {
+    "file": "assets/vT2rzicN.js",
+    "name": "ReferallTerms",
+    "src": "resources/js/Pages/Terms/ReferallTerms.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_CcCEsNlA.js",
+      "resources/js/app.js",
+      "_vendor-Bf8lAvd6.js",
+      "_vendor-BWf0vErh.js",
+      "_BXdM-2bx.js",
+      "_DZ_o6k3N.js"
+    ]
+  },
+  "resources/js/Pages/Terms/ServiceTerms.vue": {
+    "file": "assets/BY0cijcX.js",
+    "name": "ServiceTerms",
+    "src": "resources/js/Pages/Terms/ServiceTerms.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_CcCEsNlA.js",
+      "resources/js/app.js",
+      "_vendor-Bf8lAvd6.js",
+      "_vendor-BWf0vErh.js",
+      "_BXdM-2bx.js",
+      "_DZ_o6k3N.js"
+    ]
+  },
+  "resources/js/Pages/Terms/responsibleGamingPage.vue": {
+    "file": "assets/DVO4wLBc.js",
+    "name": "responsibleGamingPage",
+    "src": "resources/js/Pages/Terms/responsibleGamingPage.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_CcCEsNlA.js",
+      "resources/js/app.js",
+      "_vendor-Bf8lAvd6.js",
+      "_vendor-BWf0vErh.js",
+      "_BXdM-2bx.js",
+      "_DZ_o6k3N.js"
+    ]
+  },
+  "resources/js/app.js": {
+    "file": "assets/bB0ZOpZ_.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true,
+    "imports": [
+      "_vendor-BWf0vErh.js",
+      "_vendor-Bf8lAvd6.js"
+    ],
+    "dynamicImports": [
+      "resources/js/Pages/Home/HomePage.vue",
+      "resources/js/Pages/Auth/LoginPage.vue",
+      "resources/js/Pages/Auth/ForgotPassword.vue",
+      "resources/js/Pages/Auth/ResetPassword.vue",
+      "resources/js/Pages/Home/baixeAPP.vue",
+      "resources/js/Pages/Home/SportingPage.vue",
+      "resources/js/Pages/Home/PromotionPage.vue",
+      "resources/js/Pages/Home/MissoesPage.vue",
+      "resources/js/Pages/Home/SupportCenterPage.vue",
+      "resources/js/Pages/Auth/RegisterPage.vue",
+      "resources/js/Pages/Home/HomePage.vue",
+      "resources/js/Pages/Cassino/CasinoPlayPage.vue",
+      "resources/js/Pages/Cassino/casinoPlayPageSport.vue",
+      "resources/js/Pages/Cassino/CassinoListPage.vue",
+      "resources/js/Pages/Cassino/CassinoSearch.vue",
+      "resources/js/Pages/Profile/RecentsPage.vue",
+      "resources/js/Pages/Profile/DepositPage.vue",
+      "resources/js/Pages/Profile/WithdrawPage.vue",
+      "resources/js/Pages/Profile/TransactionPage.vue",
+      "resources/js/Pages/Home/VipPage.vue",
+      "resources/js/Pages/Home/BonusPage.vue",
+      "resources/js/Pages/Profile/ProfilePage.vue",
+      "resources/js/Pages/Profile/BalanceDetails.vue",
+      "resources/js/Pages/Profile/AccountData.vue",
+      "resources/js/Pages/Profile/AccountBets.vue",
+      "resources/js/Pages/Profile/Affiliate.vue",
+      "resources/js/Pages/Profile/AffiliateWithdrawPage.vue",
+      "resources/js/Pages/Profile/VerificationPage.vue",
+      "resources/js/Pages/Profile/AccountLimitsPage.vue",
+      "resources/js/Pages/Terms/responsibleGamingPage.vue",
+      "resources/js/Pages/Terms/ServiceTerms.vue",
+      "resources/js/Pages/Terms/PrivacyTerms.vue",
+      "resources/js/Pages/Terms/BettingTerms.vue",
+      "resources/js/Pages/Terms/KycPolicy.vue",
+      "resources/js/Pages/Terms/Pldpolicy.vue",
+      "resources/js/Pages/Terms/LgpdTerms.vue",
+      "resources/js/Pages/Terms/ReferallTerms.vue",
+      "resources/js/Pages/Funil/CaixaSupresa.vue",
+      "lang/en.json",
+      "lang/es.json",
+      "lang/php_en.json",
+      "lang/php_es.json",
+      "lang/php_pt_BR.json",
+      "lang/pt_BR.json"
+    ],
+    "assets": [
+      "assets/zbqcXWxQ.woff2",
+      "assets/B73izLXF.woff2",
+      "assets/C_4vbGZw.woff2",
+      "assets/C9RhG_FT.woff2"
+    ]
+  },
+  "style.css": {
+    "file": "assets/C6cTqguW.css",
+    "src": "style.css"
+  }
+}

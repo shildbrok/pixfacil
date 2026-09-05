@@ -1,0 +1,3047 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Helix Cash — Neon Drop</title>
+    <script src="three.min.js"></script>
+    <script src="../_core/retro-bridge.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            background: #2e2e2e;
+        }
+        body {
+            overflow: hidden;
+            touch-action: none;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(180deg, #6e6e6e 0%, #4a4a4a 50%, #2e2e2e 100%);
+            background-attachment: fixed;
+            background-color: #2e2e2e;
+        }
+        #gameContainer {
+            background: linear-gradient(180deg, #6e6e6e 0%, #4a4a4a 50%, #2e2e2e 100%);
+        }
+
+        #gameContainer {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        #ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        #progressBar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        #progressBar .level {
+            min-width: 70px;
+            height: 36px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 13px;
+            padding: 0 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+
+        #progressBar .level.current {
+            background: #ffffff;
+            color: #1a1a1a;
+        }
+
+        #progressBar .level.next {
+            background: rgba(20,20,20,0.85);
+            color: #ffffff;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        #progressTrack {
+            flex: 1;
+            max-width: 200px;
+            height: 10px;
+            background: rgba(0,0,0,0.55);
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.4);
+        }
+
+        #progressFill {
+            height: 100%;
+            background: linear-gradient(90deg, #fedd00 0%, #f5c500 100%);
+            width: 0%;
+            transition: width 0.2s ease;
+            border-radius: 5px;
+            box-shadow: 0 0 8px rgba(254, 221, 0, 0.5);
+        }
+
+        #score {
+            text-align: center;
+            font-size: 36px;
+            font-weight: 900;
+            color: #ffffff;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.8), 0 0 20px rgba(0,0,0,0.6);
+            letter-spacing: 0.5px;
+        }
+
+        #scoreLabel {
+            text-align: center;
+            font-size: 11px;
+            color: #ffffff;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 600;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+            opacity: 0.9;
+        }
+
+        #withdrawBtn {
+            display: none;
+            margin: 15px auto 0;
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            pointer-events: auto;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(16,185,129,0.4);
+        }
+
+        #withdrawBtn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(16,185,129,0.6);
+        }
+
+        #withdrawBtn.show {
+            display: block;
+        }
+
+        /* Pop-up minimalista */
+        .popup-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.5);
+            z-index: 300;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .popup-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .popup-box {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 50px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+            max-width: 90%;
+            width: 360px;
+        }
+
+        .popup-overlay.show .popup-box {
+            transform: scale(1);
+        }
+
+        .popup-logo {
+            width: 80px;
+            height: auto;
+            margin-bottom: 20px;
+        }
+
+        .popup-box h2 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .popup-box p {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 0;
+        }
+
+        .popup-box .win-amount {
+            font-size: 48px;
+            font-weight: bold;
+            color: #10b981;
+            margin: 20px 0;
+        }
+
+        .popup-box .teste-msg {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 10px;
+            padding: 12px;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #92400e;
+        }
+
+        .popup-box .teste-msg a {
+            color: #d97706;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        /* ========== Novo popup de derrota (Brasil tema) ========== */
+        #losePopup{
+            /* Backdrop com blur (GPU-accelerated, nao trava) */
+            background: rgba(0, 26, 20, 0.78);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .lose-card{
+            position: relative;
+            width: min(360px, 92%);
+            background: linear-gradient(160deg, #003d28 0%, #00241a 60%, #001a14 100%);
+            border: 1.5px solid rgba(254, 221, 0, 0.22);
+            border-radius: 22px;
+            padding: 28px 24px 22px;
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255,255,255,0.04);
+            text-align: center;
+            overflow: hidden;
+            transform: scale(0.85) translateY(20px);
+            opacity: 0;
+            transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+            will-change: transform, opacity;
+        }
+        .popup-overlay.show .lose-card{
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+        .lose-stripe{
+            position: absolute; top: 0; left: 0; right: 0; height: 5px;
+            background: linear-gradient(90deg, #009c59 0%, #009c59 33%, #fedd00 33%, #fedd00 66%, #002776 66%, #002776 100%);
+        }
+        .lose-icon-wrap{
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 88px; height: 88px;
+            margin: 8px auto 16px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(239, 68, 68, 0.35) 0%, rgba(239, 68, 68, 0.15) 50%, transparent 75%);
+            position: relative;
+        }
+        .lose-icon-wrap::before{
+            /* Pulso vermelho expandindo - toca apenas 2 vezes (nao infinite) */
+            content: ''; position: absolute; inset: 0; border-radius: 50%;
+            background: rgba(239, 68, 68, 0.4);
+            animation: losePulse 1.4s ease-out 2;
+            will-change: transform, opacity;
+        }
+        @keyframes losePulse{
+            0%{ transform: scale(0.9); opacity: 0.5; }
+            100%{ transform: scale(1.55); opacity: 0; }
+        }
+        .lose-icon{
+            position: relative; width: 70px; height: 70px;
+            filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.5));
+            will-change: transform;
+        }
+        .lose-circle, .lose-x1, .lose-x2{ stroke: #ef4444; }
+        /* Desenho progressivo do circulo */
+        .lose-circle{
+            stroke-dasharray: 226;
+            stroke-dashoffset: 226;
+            transform-origin: center; transform: rotate(-90deg);
+            animation: loseDrawCircle 0.5s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+        }
+        @keyframes loseDrawCircle{ to{ stroke-dashoffset: 0; } }
+        /* Linhas do X desenhando */
+        .lose-x1, .lose-x2{
+            stroke-dasharray: 35; stroke-dashoffset: 35;
+            animation: loseDrawX 0.25s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+        }
+        .lose-x1{ animation-delay: 0.4s; }
+        .lose-x2{ animation-delay: 0.55s; }
+        @keyframes loseDrawX{ to{ stroke-dashoffset: 0; } }
+        
+        .lose-title{
+            font-size: 26px; font-weight: 800; color: #fedd00;
+            letter-spacing: 0.3px;
+            margin-bottom: 6px;
+            opacity: 0; transform: translateY(6px);
+            animation: loseTextIn 0.35s ease-out 0.55s forwards;
+            will-change: transform, opacity;
+        }
+        .lose-subtitle{
+            font-size: 13.5px; color: rgba(255,255,255,0.7); line-height: 1.4;
+            margin-bottom: 18px;
+            opacity: 0; transform: translateY(6px);
+            animation: loseTextIn 0.35s ease-out 0.7s forwards;
+        }
+        @keyframes loseTextIn{ to{ opacity: 1; transform: translateY(0); } }
+        
+        .lose-stats{
+            display: flex; align-items: center; justify-content: space-around;
+            background: rgba(0, 26, 20, 0.55);
+            border: 1px solid rgba(254, 221, 0, 0.15);
+            border-radius: 14px;
+            padding: 12px 8px;
+            margin-bottom: 18px;
+            opacity: 0; transform: translateY(8px);
+            will-change: transform, opacity;
+            animation: loseTextIn 0.35s ease-out 0.85s forwards;
+        }
+        .lose-stat{ flex: 1; }
+        .lose-stat-label{
+            font-size: 10px; font-weight: 700;
+            color: rgba(255,255,255,0.5);
+            text-transform: uppercase; letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .lose-stat-value{
+            font-size: 18px; font-weight: 800; color: #fedd00; line-height: 1;
+        }
+        .lose-stat-divider{
+            width: 1px; height: 32px;
+            background: rgba(254, 221, 0, 0.18);
+        }
+        
+        .lose-buttons{
+            display: grid; grid-template-columns: 1fr 1.5fr; gap: 10px;
+            opacity: 0; transform: translateY(8px);
+            animation: loseTextIn 0.35s ease-out 1s forwards;
+        }
+        .lose-btn{
+            height: 46px;
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+            border-radius: 13px;
+            font-size: 13px; font-weight: 800;
+            text-decoration: none;
+            text-transform: uppercase; letter-spacing: 0.4px;
+            border: none; cursor: pointer;
+            transition: transform 0.15s ease;
+            font-family: inherit;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-appearance: none;
+            outline: none;
+            user-select: none;
+        }
+        .lose-btn:focus{ outline: none; }
+        .lose-btn:active{ transform: scale(0.96); }
+        .lose-btn-secondary{
+            background: rgba(255,255,255,0.06);
+            color: rgba(255,255,255,0.8);
+            border: 1px solid rgba(255,255,255,0.12);
+        }
+        .lose-btn-secondary:hover{ background: rgba(255,255,255,0.1); }
+        .lose-btn-primary{
+            background: linear-gradient(135deg, #fedd00 0%, #f5c500 100%);
+            color: #002d1f;
+            box-shadow: 0 4px 14px rgba(254, 221, 0, 0.25), inset 0 -3px 0 rgba(0, 45, 31, 0.18);
+        }
+        .lose-btn-primary:hover{ transform: translateY(-1px); }
+
+        /* ========== POP-UP DE VITORIA - TEMA BRASIL ========== */
+        #winPopup{
+            background: rgba(0, 26, 20, 0.82);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .win-card{
+            position: relative;
+            width: min(380px, 92%);
+            background: linear-gradient(160deg, #003d28 0%, #00241a 60%, #001a14 100%);
+            border: 2px solid rgba(254, 221, 0, 0.4);
+            border-radius: 24px;
+            padding: 22px 22px 20px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6),
+                        0 0 60px rgba(254, 221, 0, 0.2),
+                        inset 0 1px 0 rgba(255,255,255,0.06);
+            text-align: center;
+            overflow: hidden;
+            transform: scale(0.7) translateY(30px);
+            opacity: 0;
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.35s ease;
+            will-change: transform, opacity;
+        }
+        .popup-overlay.show .win-card{
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+        .win-stripe{
+            position: absolute; top: 0; left: 0; right: 0; height: 6px;
+            background: linear-gradient(90deg, #009c59 0%, #009c59 33%, #fedd00 33%, #fedd00 66%, #002776 66%, #002776 100%);
+        }
+        
+        /* Raios dourados rodando atras do trofeu */
+        .win-rays{
+            position: absolute;
+            top: 60px; left: 50%;
+            width: 280px; height: 280px;
+            margin-left: -140px;
+            background: conic-gradient(
+                from 0deg,
+                rgba(254, 221, 0, 0.35) 0deg, transparent 30deg,
+                rgba(254, 221, 0, 0.35) 60deg, transparent 90deg,
+                rgba(254, 221, 0, 0.35) 120deg, transparent 150deg,
+                rgba(254, 221, 0, 0.35) 180deg, transparent 210deg,
+                rgba(254, 221, 0, 0.35) 240deg, transparent 270deg,
+                rgba(254, 221, 0, 0.35) 300deg, transparent 330deg
+            );
+            border-radius: 50%;
+            animation: winRayRotate 12s linear infinite;
+            opacity: 0;
+            transition: opacity 0.6s ease;
+            mask-image: radial-gradient(circle, #000 0%, #000 30%, transparent 70%);
+            -webkit-mask-image: radial-gradient(circle, #000 0%, #000 30%, transparent 70%);
+            pointer-events: none;
+            will-change: transform;
+        }
+        .popup-overlay.show .win-rays{ opacity: 1; }
+        @keyframes winRayRotate{
+            from{ transform: rotate(0deg); }
+            to{ transform: rotate(360deg); }
+        }
+        
+        /* Trofeu com bounce de entrada */
+        .win-trophy-wrap{
+            position: relative;
+            width: 96px; height: 96px;
+            margin: 6px auto 12px;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0;
+            transform: scale(0.3) rotate(-30deg);
+            animation: winTrophyIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.25s forwards;
+            will-change: transform, opacity;
+            z-index: 2;
+        }
+        @keyframes winTrophyIn{
+            to{ opacity: 1; transform: scale(1) rotate(0deg); }
+        }
+        .win-trophy{
+            width: 88px; height: 88px;
+            filter: drop-shadow(0 6px 14px rgba(254, 221, 0, 0.6));
+            animation: winTrophyFloat 2.5s ease-in-out 1s infinite;
+        }
+        @keyframes winTrophyFloat{
+            0%, 100%{ transform: translateY(0) rotate(-2deg); }
+            50%{ transform: translateY(-4px) rotate(2deg); }
+        }
+        
+        .win-title{
+            font-size: 28px; font-weight: 900;
+            color: #fedd00;
+            letter-spacing: 1.5px;
+            margin-bottom: 4px;
+            text-shadow: 0 2px 8px rgba(254, 221, 0, 0.4);
+            opacity: 0; transform: translateY(8px);
+            animation: winTextIn 0.4s ease-out 0.55s forwards;
+            will-change: transform, opacity;
+            position: relative; z-index: 2;
+        }
+        .win-subtitle{
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 14px;
+            opacity: 0; transform: translateY(6px);
+            animation: winTextIn 0.4s ease-out 0.7s forwards;
+            position: relative; z-index: 2;
+        }
+        @keyframes winTextIn{
+            to{ opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Valor ganho - grande e dourado */
+        .win-amount-wrap{
+            display: flex; align-items: baseline; justify-content: center; gap: 6px;
+            margin-bottom: 16px;
+            opacity: 0; transform: scale(0.85);
+            animation: winAmountIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.85s forwards;
+            will-change: transform, opacity;
+            position: relative; z-index: 2;
+        }
+        @keyframes winAmountIn{
+            to{ opacity: 1; transform: scale(1); }
+        }
+        .win-amount-prefix{
+            font-size: 22px; font-weight: 700;
+            color: #fedd00;
+        }
+        .win-amount-value{
+            font-size: 44px; font-weight: 900;
+            color: #fedd00;
+            line-height: 1;
+            letter-spacing: -0.5px;
+            text-shadow: 0 3px 16px rgba(254, 221, 0, 0.5),
+                         0 0 30px rgba(254, 221, 0, 0.3);
+        }
+        
+        /* Card de saldo */
+        .win-saldo-card{
+            background: rgba(0, 156, 89, 0.18);
+            border: 1.5px solid rgba(0, 156, 89, 0.4);
+            border-radius: 14px;
+            padding: 11px 16px;
+            margin-bottom: 16px;
+            display: flex; align-items: center; justify-content: space-between;
+            opacity: 0; transform: translateY(8px);
+            animation: winTextIn 0.4s ease-out 1.05s forwards;
+            position: relative; z-index: 2;
+        }
+        .win-saldo-label{
+            font-size: 11px; font-weight: 700;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .win-saldo-value{
+            font-size: 17px; font-weight: 800;
+            color: #009c59;
+        }
+        
+        /* Botoes */
+        .win-buttons{
+            display: grid; grid-template-columns: 1fr 1.4fr; gap: 10px;
+            opacity: 0; transform: translateY(8px);
+            animation: winTextIn 0.4s ease-out 1.2s forwards;
+            position: relative; z-index: 2;
+        }
+        .win-btn{
+            height: 48px;
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+            border-radius: 13px;
+            font-size: 13.5px; font-weight: 800;
+            text-decoration: none;
+            text-transform: uppercase; letter-spacing: 0.4px;
+            border: none; cursor: pointer;
+            transition: transform 0.15s ease;
+            font-family: inherit;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-appearance: none;
+            outline: none;
+            user-select: none;
+        }
+        .win-btn:focus{ outline: none; }
+        .win-btn:active{ transform: scale(0.96); }
+        .win-btn-secondary{
+            background: rgba(255, 255, 255, 0.07);
+            color: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+        }
+        .win-btn-primary{
+            background: linear-gradient(135deg, #fedd00 0%, #f5c500 100%);
+            color: #002d1f;
+            box-shadow: 0 5px 18px rgba(254, 221, 0, 0.4),
+                        inset 0 -3px 0 rgba(0, 45, 31, 0.2);
+        }
+        .win-btn-primary:hover{ transform: translateY(-1px); }
+        
+        .win-teste-msg{
+            background: rgba(254, 221, 0, 0.12);
+            border: 1px solid rgba(254, 221, 0, 0.3);
+            border-radius: 12px;
+            padding: 12px 14px;
+            font-size: 12.5px;
+            color: #fedd00;
+            line-height: 1.5;
+        }
+        .win-teste-msg a{
+            color: #fff;
+            font-weight: 800;
+            text-decoration: underline;
+        }
+
+        /* Gain animation */
+        .gain-popup {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 38px;
+            font-weight: 900;
+            color: #ffffff;
+            text-shadow: 0 0 10px rgba(0,0,0,0.9), 0 2px 6px rgba(0,0,0,0.85);
+            pointer-events: none;
+            z-index: 150;
+            opacity: 0;
+            animation: gainAnim 1s ease-out forwards;
+            letter-spacing: 0.5px;
+        }
+
+        @keyframes gainAnim {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.5);
+            }
+            20% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.2);
+            }
+            80% {
+                opacity: 1;
+                transform: translate(-50%, -70%) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -90%) scale(0.8);
+            }
+        }
+
+        #gameOver, #startScreen {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, rgba(0, 36, 26, 0.55) 0%, rgba(0, 26, 20, 0.65) 100%);
+            backdrop-filter: blur(2px);
+            z-index: 200;
+            pointer-events: auto;
+            padding: 0 24px;
+        }
+
+        #gameOver h1, #startScreen h1 {
+            color: #fedd00;
+            font-size: 52px;
+            font-weight: 900;
+            margin-bottom: 16px;
+            text-align: center;
+            letter-spacing: 1.5px;
+            text-shadow: 0 3px 12px rgba(0,0,0,0.7);
+        }
+
+        #gameOver p, #startScreen p {
+            color: #ffffff;
+            font-size: 18px;
+            margin-bottom: 32px;
+            text-align: center;
+            max-width: 340px;
+            line-height: 1.4;
+            font-weight: 500;
+            text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #fedd00 0%, #f5c500 100%);
+            border: none;
+            padding: 16px 56px;
+            font-size: 22px;
+            font-weight: 800;
+            color: #002d1f;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35), inset 0 -3px 0 rgba(0, 45, 31, 0.18);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+        }
+
+        .btn:hover, .btn:focus, .btn:active {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4), inset 0 -3px 0 rgba(0, 45, 31, 0.18);
+            outline: none;
+        }
+
+        #finalScore {
+            font-size: 64px;
+            color: #fedd00;
+            font-weight: 900;
+            margin-bottom: 8px;
+            text-shadow: 0 3px 14px rgba(0,0,0,0.7);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        #instructions {
+            color: rgba(255,255,255,0.85);
+            font-size: 14px;
+            margin-top: 24px;
+            text-align: center;
+            line-height: 1.6;
+            max-width: 340px;
+            padding: 0 16px;
+        }
+        
+        .legend-row {
+            display: flex;
+            justify-content: center;
+            gap: 14px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: rgba(255,255,255,0.9);
+            font-weight: 600;
+        }
+        
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            box-shadow: 0 0 6px rgba(0,0,0,0.3);
+        }
+        
+        .legend-dot.safe { background: #22c55e; }
+        .legend-dot.warn { background: #eab308; }
+        .legend-dot.danger { background: #ef4444; }
+
+        #comboText {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 52px;
+            font-weight: 900;
+            color: #ffffff;
+            text-shadow: 0 0 12px rgba(0,0,0,0.95), 0 2px 6px rgba(0,0,0,0.8), 0 0 24px rgba(0,0,0,0.7);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 150;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            letter-spacing: 1px;
+        }
+
+        #comboText.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1.15);
+        }
+
+        /* Audio controls container */
+        /* Controles de audio: ESQUERDA = efeitos sonoros, DIREITA = musica */
+        .audio-controls {
+            position: absolute;
+            top: 100px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 250;
+        }
+        .audio-controls.audio-left { left: 20px; }
+        .audio-controls.audio-right { right: 20px; }
+        
+        /* Tutorial discreto abaixo dos controles de som (canto esquerdo) */
+        .tutorial-hint {
+            position: absolute;
+            top: 152px;   /* logo abaixo do botao de efeitos sonoros (top:100 + 40 + 12 gap) */
+            left: 20px;
+            max-width: 175px;
+            z-index: 245;
+            pointer-events: none;
+            user-select: none;
+            -webkit-user-select: none;
+            animation: tutFadeIn .6s ease-out;
+        }
+        @keyframes tutFadeIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .tutorial-hint .tut-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 7px;
+            padding: 7px 9px;
+            background: rgba(0,0,0,0.42);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border-radius: 9px;
+            margin-bottom: 6px;
+            font-size: 11px;
+            line-height: 1.3;
+            color: rgba(255,255,255,0.92);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 500;
+        }
+        .tutorial-hint .tut-icon {
+            flex-shrink: 0;
+            width: 16px;
+            height: 16px;
+            color: #fedd00;
+            margin-top: 1px;
+        }
+        .tutorial-hint kbd {
+            display: inline-block;
+            padding: 0 5px;
+            background: rgba(254,221,0,0.18);
+            border: 1px solid rgba(254,221,0,0.35);
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            color: #fedd00;
+            font-family: monospace;
+            margin: 0 1px;
+        }
+        /* Auto-some apos 8 segundos (so dica inicial) */
+        .tutorial-hint.tut-fade-out {
+            opacity: 0;
+            transform: translateY(-6px);
+            transition: opacity .5s ease, transform .5s ease;
+        }
+        
+        /* Em telas bem pequenas (telefones em modo paisagem) esconde o tutorial */
+        @media (max-height: 500px) {
+            .tutorial-hint { display: none; }
+        }
+
+        .audio-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .audio-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .audio-btn:active {
+            transform: scale(0.9);
+        }
+
+        .audio-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: white;
+        }
+
+        .nav-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Vitoria Brasil Copa 2026 */
+        .teaser-box {
+            position: relative;
+            background: linear-gradient(160deg, #003d28 0%, #00241a 100%) !important;
+            border: 2px solid rgba(254, 221, 0, 0.45);
+            color: white !important;
+            padding: 36px 28px !important;
+            width: 380px !important;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        /* Listras de bandeira no topo */
+        .teaser-box::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, #009c59 0%, #009c59 33%, #fedd00 33%, #fedd00 66%, #002776 66%, #002776 100%);
+        }
+        /* Estrelas de fundo */
+        .teaser-box::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                radial-gradient(circle at 15% 25%, rgba(254,221,0,0.10) 0%, transparent 6%),
+                radial-gradient(circle at 80% 15%, rgba(254,221,0,0.08) 0%, transparent 5%),
+                radial-gradient(circle at 75% 75%, rgba(0,156,89,0.15) 0%, transparent 8%),
+                radial-gradient(circle at 20% 85%, rgba(254,221,0,0.07) 0%, transparent 6%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .teaser-box > * { position: relative; z-index: 1; }
+        
+        .trophy-circle {
+            width: 84px;
+            height: 84px;
+            background: linear-gradient(135deg, #fedd00 0%, #f5c500 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 18px;
+            color: #002d1f;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4), inset 0 -4px 0 rgba(0, 45, 31, 0.2);
+            animation: trophyBounce 1.8s ease-in-out infinite;
+            position: relative;
+        }
+        .trophy-circle::before {
+            content: '';
+            position: absolute;
+            inset: -8px;
+            border-radius: 50%;
+            border: 2px solid rgba(254,221,0,0.4);
+            animation: trophyRing 2s ease-out infinite;
+        }
+        .trophy-circle svg { width: 44px; height: 44px; color: #002d1f !important; fill: none !important; stroke: #002d1f !important; }
+        
+        @keyframes trophyBounce {
+            0%, 100% { transform: translateY(0) rotate(-3deg); }
+            50% { transform: translateY(-6px) rotate(3deg); }
+        }
+        @keyframes trophyRing {
+            0% { transform: scale(1); opacity: 0.7; }
+            100% { transform: scale(1.4); opacity: 0; }
+        }
+        
+        .teaser-title {
+            font-size: 32px !important;
+            color: #fedd00 !important;
+            font-weight: 900 !important;
+            margin-bottom: 6px !important;
+            font-family: 'Segoe UI', sans-serif !important;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+            animation: titlePop 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+        @keyframes titlePop {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .teaser-subtitle { color: rgba(255,255,255,0.85) !important; font-size: 14px !important; margin-bottom: 22px !important; }
+        
+        .amount-card {
+            background: rgba(0, 26, 20, 0.7);
+            border: 1.5px solid rgba(254, 221, 0, 0.4);
+            border-radius: 16px;
+            padding: 18px 16px;
+            margin-bottom: 22px;
+            position: relative;
+            overflow: hidden;
+        }
+        .amount-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(110deg, transparent 35%, rgba(254,221,0,0.18) 50%, transparent 65%);
+            animation: shimmer 2.5s linear infinite;
+        }
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .card-label { display: block; font-size: 11px; color: #fedd00; font-weight: 700; margin-bottom: 6px; letter-spacing: 1px; }
+        .card-value {
+            font-size: 38px;
+            font-weight: 900;
+            color: #ffffff;
+            display: block;
+            text-shadow: 0 2px 10px rgba(254,221,0,0.4), 0 2px 4px rgba(0,0,0,0.5);
+            animation: valuePulse 1.5s ease-in-out infinite;
+        }
+        @keyframes valuePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.04); }
+        }
+        
+        .teaser-text { font-size: 13px !important; line-height: 1.6 !important; color: rgba(255,255,255,0.9) !important; margin-bottom: 25px !important; }
+        .teaser-text strong { color: #fedd00; }
+        
+        .btn-teaser {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #fedd00 0%, #f5c500 100%);
+            color: #002d1f !important;
+            text-decoration: none !important;
+            padding: 16px 32px;
+            border-radius: 30px;
+            font-weight: 800;
+            font-size: 16px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35), inset 0 -3px 0 rgba(0, 45, 31, 0.18);
+            transition: transform 0.2s ease;
+            pointer-events: auto;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+            position: relative;
+            animation: btnPulse 2s ease-in-out infinite;
+        }
+        @keyframes btnPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.04); }
+        }
+        /* Spinner pra estado de loading do botao do teaser */
+        .btn-teaser .game-spinner,
+        .js-ir-registro-inline .game-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2.5px solid rgba(0, 45, 31, 0.25);
+            border-top-color: #002d1f;
+            border-radius: 50%;
+            vertical-align: -3px;
+            margin-right: 8px;
+            animation: gameSpinnerRot 0.7s linear infinite;
+        }
+        .js-ir-registro-inline .game-spinner {
+            border-color: rgba(254, 221, 0, 0.3);
+            border-top-color: #fedd00;
+            width: 13px;
+            height: 13px;
+            margin-right: 6px;
+        }
+        @keyframes gameSpinnerRot { to { transform: rotate(360deg); } }
+        
+        .btn-teaser.loading {
+            pointer-events: none;
+            opacity: 0.85;
+            cursor: wait;
+        }
+        .js-ir-registro-inline.loading {
+            pointer-events: none;
+            opacity: 0.75;
+        }
+        
+        .btn-teaser:hover, .btn-teaser:focus, .btn-teaser:active {
+            transform: translateY(-2px) scale(1.02);
+            outline: none;
+        }
+        
+        /* Confetes Brasil */
+        .confetti-container {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 305;
+        }
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
+            height: 14px;
+            top: -20px;
+            opacity: 0;
+            animation: confettiFall 3s linear forwards;
+        }
+        @keyframes confettiFall {
+            0% { transform: translateY(-20px) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(120vh) rotate(720deg); opacity: 0; }
+        }
+    </style>
+<link rel="stylesheet" href="../_core/originals-overlay.css?v=15">
+</head>
+<body>
+    <div id="gameContainer">
+        <!-- ESQUERDA: efeitos sonoros (1 botao) -->
+        <div class="audio-controls audio-left">
+            <button id="soundToggle" class="audio-btn" onclick="toggleSound()" title="Efeitos sonoros">
+                <svg id="soundOnIcon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                <svg id="soundOffIcon" style="display:none" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+            </button>
+        </div>
+        
+        <!-- Tutorial discreto - desaparece apos 8 segundos -->
+        <div class="tutorial-hint" id="tutorialHint">
+            <div class="tut-row">
+                <svg class="tut-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 11V6a2 2 0 0 0-4 0v5"/>
+                    <path d="M14 10V4a2 2 0 0 0-4 0v6"/>
+                    <path d="M10 10.5V6a2 2 0 0 0-4 0v8"/>
+                    <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
+                </svg>
+                <span id="tutMover">Deslize na tela para girar a torre <kbd id="kbdMover">A/D</kbd></span>
+            </div>
+            <div class="tut-row">
+                <svg class="tut-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="19 12 12 19 5 12"/>
+                    <line x1="12" y1="19" x2="12" y2="5"/>
+                </svg>
+                <span id="tutAcelerar">Toque e segure para acelerar a queda <kbd id="kbdAcelerar">Espaço</kbd></span>
+            </div>
+        </div>
+        
+        <!-- DIREITA: controles de musica (3 botoes: anterior + on/off + proxima) -->
+        <div class="audio-controls audio-right">
+            <button class="audio-btn nav-btn" onclick="prevMusic()" title="Música anterior">
+                <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+            </button>
+            <button id="musicToggle" class="audio-btn" onclick="toggleMusic()" title="Música">
+                <svg id="musicOnIcon" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+                <svg id="musicOffIcon" style="display:none" viewBox="0 0 24 24"><path d="M4.27 3 3 4.27l9 9V13.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4v-3.18L19.73 21 21 19.73 4.27 3zM14 7h4V3h-6v5.18l2 2V7z"/></svg>
+            </button>
+            <button class="audio-btn nav-btn" onclick="nextMusic()" title="Próxima música">
+                <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6zm9-12v12h2V6z"/></svg>
+            </button>
+        </div>
+
+        <div id="ui">
+            <div id="progressBar">
+                <div class="level current" id="currentLevel">R$ 0,00</div>
+                <div id="progressTrack">
+                    <div id="progressFill"></div>
+                </div>
+                <div class="level next" id="nextLevel">R$ 0,00</div>
+            </div>
+            <div id="scoreLabel">Saldo Atual</div>
+            <div id="score">R$ 0,00</div>
+            <button id="withdrawBtn" onclick="withdrawWinnings()">SACAR R$ <span id="withdrawAmount">0,00</span></button>
+        </div>
+
+        <div id="comboText">COMBO x2</div>
+
+        <!-- Pop-up de perda -->
+        <div id="losePopup" class="popup-overlay">
+            <div class="confetti-container" id="confettiContainer"></div>
+                        <div class="lose-card">
+                <!-- Stripe Brasil no topo -->
+                <div class="lose-stripe"></div>
+                
+                <!-- Icone X com shake -->
+                <div class="lose-icon-wrap">
+                    <svg class="lose-icon" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <circle class="lose-circle" cx="40" cy="40" r="36" fill="none" stroke="#fff" stroke-width="4"/>
+                        <line class="lose-x1" x1="28" y1="28" x2="52" y2="52" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
+                        <line class="lose-x2" x1="52" y1="28" x2="28" y2="52" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                
+                <div class="lose-title">Você perdeu!</div>
+                <div class="lose-subtitle">A bola caiu na zona vermelha</div>
+                
+                <!-- Stats da partida -->
+                <div class="lose-stats">
+                    <div class="lose-stat">
+                        <div class="lose-stat-label">Plataformas</div>
+                        <div class="lose-stat-value" id="losePlatformsCount">0</div>
+                    </div>
+                    <div class="lose-stat-divider"></div>
+                    <div class="lose-stat">
+                        <div class="lose-stat-label">Multiplicador</div>
+                        <div class="lose-stat-value" id="loseMultiplier">1.00x</div>
+                    </div>
+                </div>
+                
+                <div class="lose-buttons">
+                    <a href="#" class="lose-btn lose-btn-secondary" onclick="event.preventDefault(); Arcade.voltar();">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                            <path d="M19 12H5M12 19l-7-7 7-7"/>
+                        </svg>
+                        Voltar
+                    </a>
+                    <button type="button" class="lose-btn lose-btn-primary" id="btnJogarNovamente" onclick="jogarNovamente()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                            <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                        </svg>
+                        <span id="btnJogarNovamenteText">Jogar R$ 0,00</span>
+                    </button>
+                </div>
+            </div>
+                    </div>
+
+        <!-- Pop-up de vitória - tema Brasil -->
+        <div id="winPopup" class="popup-overlay">
+            <div class="confetti-container" id="confettiContainerWin"></div>
+            <div class="win-card">
+                <!-- Stripe Brasil -->
+                <div class="win-stripe"></div>
+                
+                <!-- Raios dourados girando atras -->
+                <div class="win-rays"></div>
+                
+                <!-- Trofeu -->
+                <div class="win-trophy-wrap">
+                    <svg class="win-trophy" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Alcas -->
+                        <path d="M12 16 Q8 16 8 22 Q8 30 16 32" fill="none" stroke="#fedd00" stroke-width="3.5" stroke-linecap="round"/>
+                        <path d="M52 16 Q56 16 56 22 Q56 30 48 32" fill="none" stroke="#fedd00" stroke-width="3.5" stroke-linecap="round"/>
+                        <!-- Taca -->
+                        <path d="M16 8 L48 8 L46 30 Q44 38 32 38 Q20 38 18 30 Z" fill="#fedd00" stroke="#f5c500" stroke-width="2"/>
+                        <!-- Brilho na taca -->
+                        <path d="M22 12 L24 26" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+                        <!-- Base -->
+                        <rect x="26" y="38" width="12" height="6" fill="#fedd00"/>
+                        <rect x="20" y="44" width="24" height="4" rx="2" fill="#f5c500"/>
+                        <rect x="16" y="48" width="32" height="6" rx="3" fill="#fedd00"/>
+                        <!-- Estrela na frente da taca -->
+                        <text x="32" y="26" text-anchor="middle" font-size="14" font-weight="bold" fill="#009c59">★</text>
+                    </svg>
+                </div>
+                
+                <div class="win-title">PARABÉNS!</div>
+                <div class="win-subtitle">Você ganhou</div>
+                
+                <!-- Valor com contador animado -->
+                <div class="win-amount-wrap">
+                    <div class="win-amount-prefix">R$</div>
+                    <div class="win-amount-value" id="winAmount">0,00</div>
+                </div>
+                
+                <!-- Card de saldo total -->
+                <div class="win-saldo-card">
+                    <div class="win-saldo-label">Seu saldo agora</div>
+                    <div class="win-saldo-value" id="winSaldoTotal">R$ 0,00</div>
+                </div>
+                
+                                <!-- Botoes de acao - sem redirect automatico -->
+                <div class="win-buttons">
+                    <button type="button" class="win-btn win-btn-secondary" onclick="Arcade.config.back && ((window.top||window).location.href = Arcade.config.back)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                            <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><polyline points="21 3 21 8 16 8"/>
+                        </svg>
+                        Sacar
+                    </button>
+                    <button type="button" class="win-btn win-btn-primary" id="btnJogarNovamenteWin" onclick="jogarNovamente()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                            <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                        </svg>
+                        Jogar de novo
+                    </button>
+                </div>
+                            </div>
+        </div>
+
+        <div id="startScreen">
+            <h1>HELIX JUMP</h1>
+            <p>Passe pelo aberto e evite o vermelho!</p>
+            <button class="btn" onclick="startGame()">JOGAR</button>
+            <div id="instructions">
+                Arraste para girar a torre
+                <div class="legend-row">
+                    <span class="legend-item"><span class="legend-dot safe"></span>Seguro</span>
+                    <span class="legend-item"><span class="legend-dot warn"></span>Passa</span>
+                    <span class="legend-item"><span class="legend-dot danger"></span>Perde</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="gameOver" class="hidden">
+            <h1>GAME OVER</h1>
+            <div id="finalScore">0</div>
+            <p>Sua pontuacao</p>
+            <button class="btn" onclick="restartGame()">Jogar Novamente</button>
+        </div>
+    </div>
+
+    <script>
+        // Configurações do PHP
+        /*
+         * startValue e targetValue nascem zerados e sao preenchidos pela rodada
+         * que o servidor abriu (ver o Arcade.load() no fim do arquivo). Nunca
+         * vem de escolha do cliente: quem manda e o registro em arcade_rounds.
+         */
+        const GAME_CONFIG = {
+            modoTeste: false,
+            startValue: 0,
+            targetValue: 0,
+            usuarioId: 0,
+            partidaId: 0,
+            retomadaSaldo: 0,
+            retomadaObstaculos: 0,
+            ehRetomada: false,
+            nivelJogo: 'medio',
+            // Configurações de dificuldade
+            gravity: 0.0085,
+            openPercent: 0.18,
+            dangerPercent: 0.2,
+            baseEarn: 0.1,
+            speedIncrease: 0.0004,
+            // Configurações de música
+            bgmVolume: 0.3,
+            bgmList: ["bgm_1.mp3"]        };
+
+        const CONFIG = {
+            towerRadius: 1.0,
+            platformRadius: 3.0,
+            platformThickness: 0.4,
+            platformGap: 4.2,
+            ballRadius: 0.30,
+            gravity: GAME_CONFIG.gravity,
+            bounceForce: 0.20,
+            startBounceForce: 0.18,
+            maxFallSpeed: 0.18,   // limita a velocidade maxima da bola (anti-passar pelo meio do segmento)
+            rotationSensitivity: 0.012,
+            numPlatforms: 24,
+            openPercent: GAME_CONFIG.openPercent,
+            dangerPercent: GAME_CONFIG.dangerPercent,
+            ballDistanceFromCenter: 2.0,
+            cameraLerp: 0.08
+        };
+
+        const COLORS = {
+            safe: 0x22c55e,    // Verde = seguro
+            danger: 0xef4444,  // Vermelho = morre
+            tower: 0xcfcfcf,   // Cinza claro estilo Helix Jump original
+            ball: 0xf45744     // Laranja-vermelho estilo Helix Jump original
+        };
+
+        // Paleta progressiva: alterna verde/amarelo
+        const OBSTACLE_COLORS = [
+            0x22c55e, // Verde
+            0xeab308, // Amarelo
+            0x22c55e, // Verde
+            0xeab308, // Amarelo
+            0x22c55e, // Verde
+            0xeab308, // Amarelo
+        ];
+
+        // Game state
+        let scene, camera, renderer;
+        let towerMesh, platformRoot, ball;
+        let platforms = [];
+        let score = 0;
+        let level = 1;
+        let isPlaying = false;
+        let isDragging = false;
+        let lastMouseX = 0;
+        let ballVelocity = 0;
+        let currentPlatformIndex = 0;
+        let splashParticles = [];
+        let breakingPieces = [];
+        
+        // New game variables
+        let startValue = GAME_CONFIG.startValue;
+        let targetValue = GAME_CONFIG.targetValue;
+        let currentBalance = GAME_CONFIG.startValue;
+        let obstaclesPassed = 0;
+        let currentObstacleColorIndex = 0;
+        let ballOnFire = false;
+        let soundEnabled = true;     // efeitos sonoros (bola, quebrar, perder, ganhar)
+        let musicEnabled = true;     // musica de fundo - independente dos efeitos
+        let gameFinished = false;
+
+        // Audio context and sounds
+        let audioContext;
+        let bgMusicBuffers = [], bounceBuffer, breakBuffer, loseBuffer, winBuffer;
+        let bgMusicSource = null;
+        let currentBgmIndex = 0;
+
+        // Initialize audio
+        async function initAudio() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Efeitos sonoros - gerados proceduralmente (instantaneo)
+                bounceBuffer = createBounceSound();
+                breakBuffer = createBreakSound();
+                loseBuffer = createLoseSound();
+                winBuffer = createWinSound();
+                
+                // Inicia carregamento das musicas em BACKGROUND
+                // NAO aguarda - a primeira musica que carregar comeca a tocar imediatamente
+                iniciarCarregamentoMusicas();
+            } catch (e) {
+                console.log('Audio not supported', e);
+            }
+        }
+        
+        // Carrega 1 musica especifica e retorna AudioBuffer
+        async function carregarUmaMusica(nomeArquivo) {
+            const url = '/musicas/' + encodeURIComponent(nomeArquivo);
+            const res = await fetch(url, { cache: 'force-cache' });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const arrayBuffer = await res.arrayBuffer();
+            return await audioContext.decodeAudioData(arrayBuffer);
+        }
+        
+        // Carregamento PROGRESSIVO: a primeira musica que terminar comeca a tocar imediatamente
+        // As outras carregam em background sem bloquear nada
+        function iniciarCarregamentoMusicas() {
+            const lista = GAME_CONFIG.bgmList || [];
+            if (!Array.isArray(lista) || lista.length === 0) {
+                console.log('Nenhuma musica configurada');
+                return;
+            }
+            
+            bgMusicBuffers = [];
+            let primeiraTocada = false;
+            
+            // Dispara TODAS as promises em paralelo (nao espera uma terminar pra comecar a proxima)
+            lista.forEach(function(nomeArquivo, idx){
+                if (!nomeArquivo || typeof nomeArquivo !== 'string') return;
+                
+                carregarUmaMusica(nomeArquivo)
+                    .then(function(audioBuffer){
+                        bgMusicBuffers.push(audioBuffer);
+                        
+                        // Se musicEnabled ainda esta ligado e jogo rodando, e nenhuma musica tocou ainda,
+                        // comeca essa imediatamente
+                        if (!primeiraTocada && musicEnabled && isPlaying && !gameFinished) {
+                            primeiraTocada = true;
+                            startBgMusic();
+                        }
+                    })
+                    .catch(function(err){
+                        console.warn('Falha musica ' + nomeArquivo + ':', err.message);
+                    });
+            });
+        }
+
+        function createBgMusic() {
+            const sampleRate = audioContext.sampleRate;
+            const duration = 8;
+            const buffer = audioContext.createBuffer(2, sampleRate * duration, sampleRate);
+            
+            const leftChannel = buffer.getChannelData(0);
+            const rightChannel = buffer.getChannelData(1);
+            
+            const notes = [261.63, 329.63, 392.00, 523.25, 392.00, 329.63, 261.63, 293.66, 349.23, 440.00, 349.23, 293.66];
+            const noteLength = sampleRate * 0.25;
+            
+            for (let i = 0; i < buffer.length; i++) {
+                const noteIndex = Math.floor(i / noteLength) % notes.length;
+                const freq = notes[noteIndex];
+                const t = i / sampleRate;
+                
+                const melody = Math.sin(2 * Math.PI * freq * t) * 0.15;
+                const harmony = Math.sin(2 * Math.PI * (freq * 1.5) * t) * 0.08;
+                const bass = Math.sin(2 * Math.PI * (freq / 2) * t) * 0.1;
+                
+                const notePos = (i % noteLength) / noteLength;
+                const envelope = notePos < 0.1 ? notePos * 10 : (1 - notePos) * 1.1;
+                
+                const sample = (melody + harmony + bass) * envelope * 0.5;
+                leftChannel[i] = sample;
+                rightChannel[i] = sample;
+            }
+            
+            return buffer;
+        }
+
+        function createBounceSound() {
+            const sampleRate = audioContext.sampleRate;
+            const duration = 0.06;
+            const buffer = audioContext.createBuffer(1, sampleRate * duration, sampleRate);
+            const data = buffer.getChannelData(0);
+            
+            for (let i = 0; i < buffer.length; i++) {
+                const t = i / sampleRate;
+                // Pop limpo: 350Hz -> 180Hz, 60ms, sem cauda
+                const freq = 350 * Math.exp(-t * 18);
+                const tone = Math.sin(2 * Math.PI * freq * t);
+                // Ataque 3ms (sem click) + decay rapido + fade-out forcado no final
+                const attack = Math.min(1, t / 0.003);
+                const fadeOut = Math.min(1, (duration - t) / 0.008);
+                const env = attack * fadeOut * Math.exp(-t * 42);
+                data[i] = tone * env * 0.5;
+            }
+            
+            return buffer;
+        }
+
+        function createBreakSound() {
+            const sampleRate = audioContext.sampleRate;
+            const duration = 0.30;
+            const buffer = audioContext.createBuffer(1, sampleRate * duration, sampleRate);
+            const data = buffer.getChannelData(0);
+            
+            for (let i = 0; i < buffer.length; i++) {
+                const t = i / sampleRate;
+                // Pitch sweep: 200Hz -> 90Hz (evita freq < 80Hz que viram xiado)
+                const sweepFreq = 200 * Math.exp(-t * 9);
+                const sweep = Math.sin(2 * Math.PI * sweepFreq * t) * 0.8;
+                // Body em 110Hz (sem deep sub)
+                const body = Math.sin(2 * Math.PI * 110 * t) * 0.4;
+                // Ataque suave 4ms + fade-out forcado
+                const attack = Math.min(1, t / 0.004);
+                const fadeOut = Math.min(1, (duration - t) / 0.015);
+                const envSweep = attack * fadeOut * Math.exp(-t * 11);
+                const envBody = attack * fadeOut * Math.exp(-t * 9);
+                data[i] = (sweep * envSweep + body * envBody) * 0.55;
+            }
+            
+            return buffer;
+        }
+
+        function createLoseSound() {
+            const sampleRate = audioContext.sampleRate;
+            const duration = 0.8;
+            const buffer = audioContext.createBuffer(1, sampleRate * duration, sampleRate);
+            const data = buffer.getChannelData(0);
+            
+            for (let i = 0; i < buffer.length; i++) {
+                const t = i / sampleRate;
+                const freq = 300 - t * 200;
+                const envelope = Math.exp(-t * 3);
+                data[i] = Math.sin(2 * Math.PI * freq * t) * envelope * 0.4;
+            }
+            
+            return buffer;
+        }
+
+        function createWinSound() {
+            const sampleRate = audioContext.sampleRate;
+            const duration = 1.0;
+            const buffer = audioContext.createBuffer(1, sampleRate * duration, sampleRate);
+            const data = buffer.getChannelData(0);
+            
+            const notes = [523.25, 659.25, 783.99, 1046.50];
+            const noteLength = sampleRate * 0.2;
+            
+            for (let i = 0; i < buffer.length; i++) {
+                const noteIndex = Math.min(Math.floor(i / noteLength), notes.length - 1);
+                const freq = notes[noteIndex];
+                const t = i / sampleRate;
+                const localT = (i % noteLength) / noteLength;
+                const envelope = localT < 0.1 ? localT * 10 : Math.exp(-(localT - 0.1) * 3);
+                data[i] = Math.sin(2 * Math.PI * freq * t) * envelope * 0.4;
+            }
+            
+            return buffer;
+        }
+
+        // Master gain compartilhado - evita criar GainNode a cada batida (causa engasgo)
+        let masterGain = null;
+        let bgmGain = null;
+        let lastBouncePlayTime = 0;
+        const MIN_BOUNCE_INTERVAL = 0.008; // 8ms - so evita duplicata exata
+
+        function ensureGainNodes() {
+            if (!masterGain && audioContext) {
+                masterGain = audioContext.createGain();
+                masterGain.gain.value = 0.45;
+                masterGain.connect(audioContext.destination);
+
+                bgmGain = audioContext.createGain();
+                bgmGain.gain.value = GAME_CONFIG.bgmVolume || 0.3;
+                bgmGain.connect(audioContext.destination);
+            }
+        }
+
+        function playSound(buffer, loop = false) {
+            // Loop = musica de fundo (respeita musicEnabled)
+            // Nao-loop = efeito sonoro (respeita soundEnabled)
+            if (!audioContext || !buffer) return null;
+            if (loop && !musicEnabled) return null;
+            if (!loop && !soundEnabled) return null;
+            
+            try {
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+                
+                ensureGainNodes();
+                const now = audioContext.currentTime;
+
+                // Throttle do bounce - evita acumulo se dispara rapido demais
+                if (!loop && buffer === bounceBuffer) {
+                    if (now - lastBouncePlayTime < MIN_BOUNCE_INTERVAL) {
+                        return null;
+                    }
+                    lastBouncePlayTime = now;
+                }
+                
+                const source = audioContext.createBufferSource();
+                source.buffer = buffer;
+                source.loop = loop;
+                
+                source.connect(loop ? bgmGain : masterGain);
+                source.start(now);
+                
+                return source;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function startBgMusic(index = null) {
+            if (bgMusicSource) {
+                try { bgMusicSource.stop(); } catch(e) {}
+            }
+            
+            if (bgMusicBuffers.length > 0) {
+                if (index !== null) {
+                    currentBgmIndex = index;
+                } else {
+                    currentBgmIndex = Math.floor(Math.random() * bgMusicBuffers.length);
+                }
+                
+                // Manter índice dentro do intervalo (circular)
+                if (currentBgmIndex < 0) currentBgmIndex = bgMusicBuffers.length - 1;
+                if (currentBgmIndex >= bgMusicBuffers.length) currentBgmIndex = 0;
+                
+                bgMusicSource = playSound(bgMusicBuffers[currentBgmIndex], true);
+            }
+        }
+
+        function nextMusic() {
+            if (bgMusicBuffers.length <= 1) return;
+            startBgMusic(currentBgmIndex + 1);
+        }
+
+        function prevMusic() {
+            if (bgMusicBuffers.length <= 1) return;
+            startBgMusic(currentBgmIndex - 1);
+        }
+
+        // Abaixa o volume da musica gradualmente (em vez de parar)
+        // Usado nos popups de win/lose pra musica nao ser cortada brutalmente
+        function duckBgMusicVolume(targetMultiplier = 0.4) {
+            if (!bgmGain || !audioContext) return;
+            try {
+                const now = audioContext.currentTime;
+                const baseVol = GAME_CONFIG.bgmVolume || 0.3;
+                const target = baseVol * targetMultiplier;
+                bgmGain.gain.cancelScheduledValues(now);
+                bgmGain.gain.setValueAtTime(bgmGain.gain.value, now);
+                bgmGain.gain.linearRampToValueAtTime(target, now + 0.4);
+            } catch (e) {}
+        }
+        
+        // Restaura o volume normal da musica
+        function restoreBgMusicVolume() {
+            if (!bgmGain || !audioContext) return;
+            try {
+                const now = audioContext.currentTime;
+                const baseVol = GAME_CONFIG.bgmVolume || 0.3;
+                bgmGain.gain.cancelScheduledValues(now);
+                bgmGain.gain.setValueAtTime(bgmGain.gain.value, now);
+                bgmGain.gain.linearRampToValueAtTime(baseVol, now + 0.4);
+            } catch (e) {}
+        }
+        
+        function stopBgMusic() {
+            if (bgMusicSource) {
+                try { bgMusicSource.stop(); } catch(e) {}
+                bgMusicSource = null;
+            }
+        }
+
+        function toggleSound() {
+            // Toggle apenas dos EFEITOS sonoros (bola, quebrar, etc) - nao mexe na musica
+            soundEnabled = !soundEnabled;
+            const onIcon = document.getElementById('soundOnIcon');
+            const offIcon = document.getElementById('soundOffIcon');
+            if (onIcon) onIcon.style.display = soundEnabled ? 'block' : 'none';
+            if (offIcon) offIcon.style.display = soundEnabled ? 'none' : 'block';
+        }
+        
+        function toggleMusic() {
+            musicEnabled = !musicEnabled;
+            const onIcon = document.getElementById('musicOnIcon');
+            const offIcon = document.getElementById('musicOffIcon');
+            if (onIcon) onIcon.style.display = musicEnabled ? 'block' : 'none';
+            if (offIcon) offIcon.style.display = musicEnabled ? 'none' : 'block';
+            
+            if (musicEnabled && isPlaying && !gameFinished) {
+                // Liga a musica se ja tem buffer carregado
+                if (bgMusicBuffers.length > 0) startBgMusic();
+            } else {
+                stopBgMusic();
+            }
+        }
+
+        function formatCurrency(value) {
+            return 'R$ ' + value.toFixed(2).replace('.', ',');
+        }
+
+        function showGainPopup(amount) {
+            const popup = document.createElement('div');
+            popup.className = 'gain-popup';
+            popup.textContent = '+' + formatCurrency(amount);
+            document.getElementById('gameContainer').appendChild(popup);
+            
+            setTimeout(() => popup.remove(), 1000);
+        }
+
+        function normalizeAngle(a) {
+            while (a < 0) a += Math.PI * 2;
+            while (a >= Math.PI * 2) a -= Math.PI * 2;
+            return a;
+        }
+
+        function isInRange(angle, start, end) {
+            angle = normalizeAngle(angle);
+            start = normalizeAngle(start);
+            end = normalizeAngle(end);
+
+            if (start <= end) return angle >= start && angle <= end;
+            return angle >= start || angle <= end;
+        }
+
+        function unwrapRange(start, end, wrap = false) {
+            start = normalizeAngle(start);
+            end = normalizeAngle(end);
+
+            if (wrap || start > end) {
+                const out = [];
+                if (start < Math.PI * 2) out.push({ start, end: Math.PI * 2 });
+                if (end > 0) out.push({ start: 0, end });
+                return out;
+            }
+
+            if (end - start <= 0.0001) return [];
+            return [{ start, end }];
+        }
+
+        function subtractSingleRange(base, cut) {
+            if (cut.end <= base.start || cut.start >= base.end) return [base];
+
+            const out = [];
+            if (cut.start > base.start) out.push({ start: base.start, end: cut.start });
+            if (cut.end < base.end) out.push({ start: cut.end, end: base.end });
+            return out;
+        }
+
+        function subtractWrappedRange(baseRanges, cutRanges) {
+            let current = [];
+
+            for (const base of baseRanges) {
+                current.push(...unwrapRange(base.start, base.end, base.wrap));
+            }
+
+            for (const cut of cutRanges) {
+                const cutParts = unwrapRange(cut.start, cut.end, cut.wrap);
+                let next = [];
+
+                for (const piece of current) {
+                    let pieces = [piece];
+
+                    for (const cutPart of cutParts) {
+                        let temp = [];
+                        for (const p of pieces) {
+                            temp.push(...subtractSingleRange(p, cutPart));
+                        }
+                        pieces = temp;
+                    }
+
+                    next.push(...pieces);
+                }
+
+                current = next;
+            }
+
+            return current.filter(r => (r.end - r.start) > 0.001);
+        }
+
+        function angleToXY(angle, radius) {
+            return {
+                x: Math.sin(angle) * radius,
+                y: Math.cos(angle) * radius
+            };
+        }
+
+        
+        function createArcMesh(startAngle, endAngle, color) {
+            const inner = CONFIG.towerRadius + 0.05;
+            const outer = CONFIG.platformRadius;
+
+            const p1 = angleToXY(startAngle, inner);
+            const p2 = angleToXY(startAngle, outer);
+
+            const shape = new THREE.Shape();
+            shape.moveTo(p1.x, p1.y);
+            shape.lineTo(p2.x, p2.y);
+            shape.absarc(0, 0, outer, Math.PI / 2 - startAngle, Math.PI / 2 - endAngle, true);
+
+            const p3 = angleToXY(endAngle, inner);
+            shape.lineTo(p3.x, p3.y);
+            shape.absarc(0, 0, inner, Math.PI / 2 - endAngle, Math.PI / 2 - startAngle, false);
+
+            const geometry = new THREE.ExtrudeGeometry(shape, {
+                steps: 1,
+                depth: CONFIG.platformThickness,
+                bevelEnabled: false
+            });
+
+            geometry.rotateX(Math.PI / 2);
+            geometry.translate(0, CONFIG.platformThickness / 2, 0);
+
+            const material = new THREE.MeshPhongMaterial({
+                color,
+                shininess: 30
+            });
+
+            return new THREE.Mesh(geometry, material);
+        }
+
+        function createTower() {
+            // Cilindro propositalmente MUITO alto - sera reposicionado dinamicamente
+            // no animate() pra sempre ficar centrado na camera (infinito visual)
+            const TOWER_LEN = 200;
+            const geometry = new THREE.CylinderGeometry(CONFIG.towerRadius, CONFIG.towerRadius, TOWER_LEN, 32);
+            const material = new THREE.MeshPhongMaterial({
+                color: COLORS.tower,
+                shininess: 55
+            });
+
+            towerMesh = new THREE.Mesh(geometry, material);
+            towerMesh.position.y = 0; // sera atualizado no animate()
+            scene.add(towerMesh);
+        }
+
+        // Cria uma textura procedural de bola de futebol em canvas
+        /**
+         * Cria uma textura PROCEDURAL de bola de futebol.
+         * Em vez de tentar mapear uma foto 2D na esfera (que da ruim),
+         * geramos o padrao classico de hexagonos brancos + pentagonos pretos
+         * num canvas 1024x512 com proporcao 2:1 (equiretangular = funciona em esferas).
+         */
+        function criarTexturaBolaFutebol(){
+            // Textura UNIFORME: padrao de pentagonos pretos + hexagonos brancos
+            // SEM sombreamento na textura - quem ilumina e o material/luz da cena.
+            // Isso garante que a bola pareca uniforme ao girar (nao tem "lado claro fixo").
+            const W = 1024, H = 512;
+            const canvas = document.createElement('canvas');
+            canvas.width = W;
+            canvas.height = H;
+            const ctx = canvas.getContext('2d');
+            
+            // Fundo branco PURO
+            ctx.fillStyle = '#f0f0f0';
+            ctx.fillRect(0, 0, W, H);
+            
+            // Pinta um padrao de pontos pretos arredondados (simula pentagonos da bola)
+            // distribuidos em grade hexagonal cobrindo toda a textura uniformemente
+            ctx.fillStyle = '#1a1a1a';
+            
+            const r = 38;                        // raio dos pontos pretos
+            const spacingX = 130;                // espacamento horizontal
+            const spacingY = 110;                // espacamento vertical
+            
+            let row = 0;
+            for (let y = -spacingY; y < H + spacingY; y += spacingY){
+                const offsetX = (row % 2) * (spacingX / 2);
+                for (let x = -spacingX; x < W + spacingX; x += spacingX){
+                    // Desenha um pentagono preto
+                    const cx = x + offsetX;
+                    const cy = y;
+                    ctx.beginPath();
+                    for (let i = 0; i < 5; i++){
+                        const ang = (Math.PI * 2 * i / 5) - Math.PI / 2;
+                        const px = cx + Math.cos(ang) * r;
+                        const py = cy + Math.sin(ang) * r;
+                        if (i === 0) ctx.moveTo(px, py);
+                        else ctx.lineTo(px, py);
+                    }
+                    ctx.closePath();
+                    ctx.fill();
+                }
+                row++;
+            }
+            
+            // Linhas finas pretas em volta de cada pentagono pra dar definicao (opcional)
+            // Removido pra ficar mais limpo - a luz da cena ja da o contraste necessario
+            
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.wrapS = THREE.RepeatWrapping;     // wrap horizontal pra unir as bordas
+            tex.wrapT = THREE.ClampToEdgeWrapping;
+            tex.minFilter = THREE.LinearMipmapLinearFilter;
+            tex.magFilter = THREE.LinearFilter;
+            tex.anisotropy = 4;                    // melhor qualidade ao girar
+            if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+            tex.needsUpdate = true;
+            return tex;
+        }
+        
+        function createBall() {
+            const geometry = new THREE.SphereGeometry(CONFIG.ballRadius, 48, 32);
+            
+            // Material MATE (sem brilho metalico que parecia espelho/boliche)
+            // shininess baixo + specular escuro = aparencia de couro
+            let texture = null;
+            try {
+                texture = criarTexturaBolaFutebol();
+            } catch(e) {
+                console.warn('Falha textura procedural', e);
+            }
+            
+            const material = new THREE.MeshLambertMaterial({
+                color: 0xffffff,
+                map: texture
+            });
+            
+            ball = new THREE.Mesh(geometry, material);
+            ball.castShadow = true;
+            scene.add(ball);
+        }
+
+        // Funcoes de fogo removidas - bola fica somente com o PNG, sem efeitos
+        function updateFireEffect() { /* no-op */ }
+        function updateBallAppearance() { /* no-op */ }
+
+        function updateObstacleColors() {
+            // Plataformas ja sao multicoloridas (verde + amarelo misturados) - sem mudancas globais
+        }
+
+        // Aumenta dificuldade conforme passa obstaculos (para nivel dificil)
+        function updateDifficulty() {
+            if (GAME_CONFIG.nivelJogo === 'dificil') {
+                CONFIG.gravity = GAME_CONFIG.gravity + (obstaclesPassed * GAME_CONFIG.speedIncrease);
+                CONFIG.gravity = Math.min(CONFIG.gravity, 0.025); // Cap max speed
+            }
+        }
+
+        function createPlatform(index) {
+            const group = new THREE.Group();
+
+            const fullCircle = Math.PI * 2;
+            const openSize = fullCircle * CONFIG.openPercent;
+            const dangerSize = fullCircle * CONFIG.dangerPercent;
+
+            const openStart = 0;
+            const openEnd = openStart + openSize;
+
+            let dangerStart = openEnd + 0.55 + Math.random() * (fullCircle - openSize - dangerSize - 1.1);
+            let dangerEnd = dangerStart + dangerSize;
+            if (dangerEnd >= fullCircle) dangerEnd -= fullCircle;
+
+            const safeRanges = subtractWrappedRange(
+                [{ start: openEnd, end: openStart, wrap: true }],
+                [{ start: dangerStart, end: dangerEnd, wrap: dangerStart > dangerEnd }]
+            );
+
+            let rotationY = Math.random() * Math.PI * 2;
+
+            if (index === 0) {
+                const desiredWorldAngle = 0;
+                const firstSafe = safeRanges[0];
+                const safeCenter = normalizeAngle((firstSafe.start + firstSafe.end) / 2);
+                rotationY = normalizeAngle(desiredWorldAngle - safeCenter);
+            }
+
+            group.rotation.y = rotationY;
+            group.position.y = 3 - index * CONFIG.platformGap;
+
+            const segments = [];
+            // Cor solida por plataforma: verde OU amarelo (escolha aleatoria)
+            const platformColor = Math.random() > 0.5 ? 0x22c55e : 0xeab308;
+
+            safeRanges.forEach(range => {
+                const parts = unwrapRange(range.start, range.end);
+                parts.forEach(part => {
+                    const mesh = createArcMesh(part.start, part.end, platformColor);
+                    group.add(mesh);
+                    segments.push(mesh);
+                });
+            });
+
+            const dangerParts = unwrapRange(dangerStart, dangerEnd, dangerStart > dangerEnd);
+            dangerParts.forEach(part => {
+                const mesh = createArcMesh(part.start, part.end, COLORS.danger);
+                group.add(mesh);
+                segments.push(mesh);
+            });
+
+            platformRoot.add(group);
+
+            return {
+                index,
+                group,
+                segments,
+                openStart,
+                openEnd,
+                dangerStart,
+                dangerEnd,
+                broken: false
+            };
+        }
+
+        function createAllPlatforms() {
+            platforms.forEach(p => {
+                if (p.group.parent) p.group.parent.remove(p.group);
+            });
+
+            platforms = [];
+            for (let i = 0; i < CONFIG.numPlatforms; i++) {
+                platforms.push(createPlatform(i));
+            }
+        }
+
+        function getPlatformTopY(index) {
+            return platforms[index].group.position.y + CONFIG.platformThickness / 2;
+        }
+
+        function getBallRelativeAngle(platform) {
+            const worldAngle = normalizeAngle(Math.atan2(ball.position.x, ball.position.z));
+            const totalRotation = platformRoot.rotation.y + platform.group.rotation.y;
+            return normalizeAngle(worldAngle - totalRotation);
+        }
+
+        function ballIsOnOpen(platform) {
+            return isInRange(getBallRelativeAngle(platform), platform.openStart, platform.openEnd);
+        }
+
+        function ballIsOnDanger(platform) {
+            return isInRange(getBallRelativeAngle(platform), platform.dangerStart, platform.dangerEnd);
+        }
+
+        function placeBallOnPlatform(index, startBounce = false) {
+            currentPlatformIndex = index;
+            ball.position.x = 0;
+            ball.position.z = CONFIG.ballDistanceFromCenter;
+            ball.position.y = getPlatformTopY(index) + CONFIG.ballRadius;
+            ballVelocity = startBounce ? CONFIG.startBounceForce : CONFIG.bounceForce;
+        }
+
+        function clearEffects() {
+            breakingPieces.forEach(p => scene.remove(p.mesh));
+            breakingPieces = [];
+
+            splashParticles.forEach(p => scene.remove(p));
+            splashParticles = [];
+        }
+
+        function resetGameState() {
+            clearEffects();
+
+            platforms.forEach(p => {
+                p.broken = false;
+                p.segments.forEach(seg => seg.visible = true);
+            });
+
+            platformRoot.rotation.y = 0;
+            score = 0;
+            level = 1;
+            
+            // RETOMADA: se for partida em andamento, restaura saldo + obstaculos
+            if (GAME_CONFIG.ehRetomada && GAME_CONFIG.retomadaSaldo > 0) {
+                currentBalance = GAME_CONFIG.retomadaSaldo;
+                obstaclesPassed = GAME_CONFIG.retomadaObstaculos;
+                // Marca como nao-retomada nas proximas resetGameState (que sao reset de fato)
+                GAME_CONFIG.ehRetomada = false;
+            } else {
+                currentBalance = startValue;
+                obstaclesPassed = 0;
+            }
+            
+            currentObstacleColorIndex = 0;
+            ballOnFire = false;
+            gameFinished = false;
+            
+            // Reset difficulty
+            CONFIG.gravity = GAME_CONFIG.gravity;
+            CONFIG.openPercent = GAME_CONFIG.openPercent;
+            CONFIG.dangerPercent = GAME_CONFIG.dangerPercent;
+            
+            if (ball) {
+                // Mantem cor branca pra textura aparecer corretamente
+                ball.material.color.setHex(0xffffff);
+                if (ball.material.emissive) ball.material.emissive.setHex(0x000000);
+                ball.material.emissiveIntensity = 0;
+            }
+            
+            placeBallOnPlatform(0, true);
+            updateUI();
+            checkWithdrawButton();
+        }
+
+        function startGame() {
+            document.getElementById('startScreen').classList.add('hidden');
+            resetGameState();
+            isPlaying = true;
+            
+            initAudio().then(() => {
+                if (audioContext && audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+                ensureGainNodes();
+                // Warmup - buffer silencioso pra inicializar pipeline e evitar delay
+                try {
+                    const warmup = audioContext.createBufferSource();
+                    warmup.buffer = audioContext.createBuffer(1, 1, audioContext.sampleRate);
+                    warmup.connect(audioContext.destination);
+                    warmup.start(0);
+                } catch(e) {}
+                
+                // Inicia musica de fundo se houver MP3s carregados
+                startBgMusic();
+            });
+        }
+
+        function restartGame() {
+            document.getElementById('gameOver').classList.add('hidden');
+            resetGameState();
+            isPlaying = true;
+            startBgMusic();
+        }
+
+        // Reinicia partida com mesmo valor da aposta (debita do saldo novamente via /game?valor=X)
+        function jogarNovamente(){
+            const btn = document.getElementById('btnJogarNovamente');
+            const txt = document.getElementById('btnJogarNovamenteText');
+            if (btn) { btn.disabled = true; btn.style.opacity = '.7'; }
+            if (txt) txt.textContent = 'Carregando...';
+            
+            const valor = 0;
+            // Jogar de novo passa pela tela de escolha da aposta: uma rodada
+            // nova precisa de um novo debito, e quem faz isso e o servidor.
+            (window.top || window).location.href = Arcade.config.back;
+        }
+        
+        function showLosePopup() {
+            // Musica continua tocando - so abaixa volume sutil
+            duckBgMusicVolume(0.4);
+            playSound(loseBuffer);
+            finalizarPartida('perdida');
+            
+            // CRITICO: para a fisica/render do jogo pra animacao do popup rodar suave
+            // (60fps de three.js + animacao DOM em cima estavam concorrendo pela GPU)
+            isPlaying = false;
+            gameFinished = true;
+            
+            const popup = document.getElementById('losePopup');
+            
+            if (GAME_CONFIG.modoTeste) {
+                const teaserAmountEl = document.getElementById('loseTeaserAmount');
+                if (teaserAmountEl) {
+                    teaserAmountEl.textContent = currentBalance.toFixed(2).replace('.', ',');
+                }
+                popup.classList.add('show');
+                spawnConfetti();
+            } else {
+                // Preenche stats da partida no modal
+                const platformsEl = document.getElementById('losePlatformsCount');
+                const multiplierEl = document.getElementById('loseMultiplier');
+                
+                if (platformsEl) platformsEl.textContent = obstaclesPassed;
+                if (multiplierEl) {
+                    const mult = startValue > 0 ? (currentBalance / startValue) : 1;
+                    multiplierEl.textContent = mult.toFixed(2).replace('.', ',') + 'x';
+                }
+                
+                // Verifica se o saldo atual do usuario ainda da pra jogar novamente
+                // (o backend tem o saldo real - frontend so verifica via fetch leve)
+                // Sem checagem de saldo aqui: quem valida e o servidor, ao abrir
+                // a proxima rodada na tela de escolha da aposta.
+                
+                popup.classList.add('show');
+                // SEM redirect automatico - usuario decide quando voltar/jogar novamente
+            }
+        }
+
+        function showWinPopup() {
+            // Musica continua tocando - so abaixa volume sutil
+            duckBgMusicVolume(0.4);
+            playSound(winBuffer);
+            finalizarPartida('ganha');
+            gameFinished = true;
+            isPlaying = false; // libera GPU pra animacao
+            
+            const popup = document.getElementById('winPopup');
+            const amountEl = document.getElementById('winAmount');
+            const saldoTotalEl = document.getElementById('winSaldoTotal');
+            
+            popup.classList.add('show');
+            spawnConfetti();
+            
+            // Animacao de contador - subindo de 0 ate currentBalance
+            const targetCount = currentBalance;
+            const duration = 1600;
+            const startTime = Date.now() + 850; // delay ate o valor entrar em cena
+            
+            function formatNum(v){
+                return Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+            
+            function animateCount() {
+                const elapsed = Date.now() - startTime;
+                if (elapsed < 0) {
+                    requestAnimationFrame(animateCount);
+                    return;
+                }
+                const progress = Math.min(elapsed / duration, 1);
+                // easeOutCubic
+                const eased = 1 - Math.pow(1 - progress, 3);
+                const current = eased * targetCount;
+                amountEl.textContent = formatNum(current);
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animateCount);
+                } else {
+                    amountEl.textContent = formatNum(targetCount);
+                    
+                    // Salva no servidor (se for real)
+                    if (!GAME_CONFIG.modoTeste) {
+                        saveWinnings();
+                        
+                        // Busca saldo total real do usuario depois de creditar
+                        // O saldo do site fica no topo, fora do iframe; aqui basta
+                        // mostrar o valor acumulado na rodada.
+                        if (saldoTotalEl) saldoTotalEl.textContent = 'R$ ' + formatNum(targetCount);
+                    } else {
+                        if (saldoTotalEl) saldoTotalEl.textContent = 'R$ ' + formatNum(targetCount);
+                    }
+                }
+            }
+            
+            requestAnimationFrame(animateCount);
+            // SEM redirect automatico - usuario decide via botoes
+        }
+
+        /*
+         * Liquida a rodada como vitoria. O valor e uma reivindicacao: o
+         * ArcadeController corta no teto gravado na rodada, entao mexer nisto
+         * pelo navegador nao aumenta o pagamento.
+         */
+        function saveWinnings() {
+            // voltar: false para o pop-up de vitoria aparecer; a navegacao fica
+            // nos botoes dele.
+            Arcade.win(currentBalance, { voltar: false });
+        }
+
+        function gameOver() {
+            isPlaying = false;
+            
+            // Registrar derrota no banco
+            // Liquida a rodada como perda. A aposta ja foi debitada na abertura;
+            // o que importa aqui e FECHAR a rodada, senao a proxima aposta de
+            // mesmo valor a retoma sem debitar de novo.
+            Arcade.lose({ voltar: false });
+            
+            document.getElementById('finalScore').textContent = score;
+            showLosePopup();
+        }
+
+        function checkWithdrawButton() {
+            const btn = document.getElementById('withdrawBtn');
+            const amountSpan = document.getElementById('withdrawAmount');
+            
+            if (currentBalance >= targetValue) {
+                btn.classList.add('show');
+                amountSpan.textContent = currentBalance.toFixed(2).replace('.', ',');
+            } else {
+                btn.classList.remove('show');
+            }
+        }
+
+        function withdrawWinnings() {
+            isPlaying = false;
+            showWinPopup();
+        }
+
+        function updateUI() {
+            document.getElementById('score').textContent = formatCurrency(currentBalance);
+            document.getElementById('currentLevel').textContent = formatCurrency(startValue);
+            document.getElementById('nextLevel').textContent = formatCurrency(targetValue);
+
+            const progress = Math.max(0, Math.min(100, ((currentBalance - startValue) / (targetValue - startValue)) * 100));
+            document.getElementById('progressFill').style.width = progress + '%';
+            
+            checkWithdrawButton();
+        }
+
+        function showCombo(num) {
+            const el = document.getElementById('comboText');
+            el.textContent = `COMBO x${num}!`;
+            el.classList.add('show');
+            clearTimeout(showCombo._timer);
+            showCombo._timer = setTimeout(() => el.classList.remove('show'), 500);
+        }
+
+        function createSplash(pos, color) {
+            playSound(bounceBuffer);
+            
+            // Cap em 24 particulas totais
+            while (splashParticles.length > 24) {
+                const old = splashParticles.shift();
+                scene.remove(old);
+                if (old.geometry) old.geometry.dispose();
+                if (old.material) old.material.dispose();
+            }
+            
+            for (let i = 0; i < 5; i++) {
+                const geo = new THREE.SphereGeometry(0.045, 5, 5);
+                const mat = new THREE.MeshBasicMaterial({ color });
+                const p = new THREE.Mesh(geo, mat);
+                p.position.copy(pos);
+                p.velocity = new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.14,
+                    Math.random() * 0.08,
+                    (Math.random() - 0.5) * 0.14
+                );
+                p.life = 1;
+                scene.add(p);
+                splashParticles.push(p);
+            }
+        }
+
+        function updateSplash() {
+            for (let i = splashParticles.length - 1; i >= 0; i--) {
+                const p = splashParticles[i];
+                p.position.add(p.velocity);
+                p.velocity.y -= 0.008;
+                p.life -= 0.06;
+                p.scale.setScalar(Math.max(0.01, p.life));
+
+                if (p.life <= 0) {
+                    scene.remove(p);
+                    if (p.geometry) p.geometry.dispose();
+                    if (p.material) p.material.dispose();
+                    splashParticles.splice(i, 1);
+                }
+            }
+        }
+
+        function breakPlatform(index) {
+            const platform = platforms[index];
+            if (!platform || platform.broken) return;
+
+            platform.broken = true;
+            playSound(breakBuffer);
+
+            platform.segments.forEach(seg => {
+                const piece = seg.clone();
+                piece.geometry = seg.geometry.clone();
+                piece.material = seg.material.clone();
+                piece.material.transparent = true;
+
+                seg.updateMatrixWorld(true);
+
+                const pos = new THREE.Vector3();
+                const quat = new THREE.Quaternion();
+                const scl = new THREE.Vector3();
+                seg.matrixWorld.decompose(pos, quat, scl);
+
+                piece.position.copy(pos);
+                piece.quaternion.copy(quat);
+                piece.scale.copy(scl);
+
+                scene.add(piece);
+
+                breakingPieces.push({
+                    mesh: piece,
+                    velocity: new THREE.Vector3(
+                        (Math.random() - 0.5) * 0.06,
+                        Math.random() * 0.05,
+                        (Math.random() - 0.5) * 0.06
+                    ),
+                    rotSpeed: new THREE.Vector3(
+                        (Math.random() - 0.5) * 0.05,
+                        (Math.random() - 0.5) * 0.05,
+                        (Math.random() - 0.5) * 0.05
+                    ),
+                    life: 1
+                });
+                
+                // Cap pra evitar acumulo de meshes
+                while (breakingPieces.length > 50) {
+                    const oldPiece = breakingPieces.shift();
+                    scene.remove(oldPiece.mesh);
+                    if (oldPiece.mesh.geometry) oldPiece.mesh.geometry.dispose();
+                    if (oldPiece.mesh.material) oldPiece.mesh.material.dispose();
+                }
+
+                seg.visible = false;
+            });
+        }
+
+        // ============================================================
+        // BREAK EXPLOSIVO - pra quebra de plataforma vermelha (bonus)
+        // Divide cada segmento em N pedacos menores que voam mais forte.
+        // ============================================================
+        function breakPlatformExplosive(index) {
+            const platform = platforms[index];
+            if (!platform || platform.broken) return;
+            
+            platform.broken = true;
+            playSound(breakBuffer);
+            
+            // Camera shake
+            if (typeof camera !== 'undefined' && camera) {
+                window._shakeAmount = 0.35;
+                window._shakeDecay = 0.92;
+            }
+            
+            platform.segments.forEach(seg => {
+                seg.updateMatrixWorld(true);
+                const segPos = new THREE.Vector3();
+                const segQuat = new THREE.Quaternion();
+                const segScl = new THREE.Vector3();
+                seg.matrixWorld.decompose(segPos, segQuat, segScl);
+                
+                // Divide cada segmento em 4 pedacos menores
+                const NUM_PIECES = 4;
+                for (let k = 0; k < NUM_PIECES; k++) {
+                    const piece = seg.clone();
+                    piece.geometry = seg.geometry.clone();
+                    piece.material = seg.material.clone();
+                    piece.material.transparent = true;
+                    
+                    // Diminui escala pra dar a sensacao de "pedaco quebrado"
+                    const escalaPedaco = 0.45 + Math.random() * 0.25;
+                    piece.scale.copy(segScl).multiplyScalar(escalaPedaco);
+                    
+                    // Posicao com pequeno offset random
+                    piece.position.copy(segPos);
+                    piece.position.x += (Math.random() - 0.5) * 0.6;
+                    piece.position.z += (Math.random() - 0.5) * 0.6;
+                    piece.position.y += (Math.random() - 0.5) * 0.3;
+                    piece.quaternion.copy(segQuat);
+                    
+                    scene.add(piece);
+                    
+                    // Velocidade explosiva - 3 a 5x mais forte que quebra normal
+                    const angle = Math.atan2(piece.position.z, piece.position.x);
+                    const radialForce = 0.18 + Math.random() * 0.12;  // forca para fora
+                    
+                    breakingPieces.push({
+                        mesh: piece,
+                        velocity: new THREE.Vector3(
+                            Math.cos(angle) * radialForce + (Math.random() - 0.5) * 0.08,
+                            0.20 + Math.random() * 0.18,                // sobe forte
+                            Math.sin(angle) * radialForce + (Math.random() - 0.5) * 0.08
+                        ),
+                        rotSpeed: new THREE.Vector3(
+                            (Math.random() - 0.5) * 0.25,                // gira muito mais
+                            (Math.random() - 0.5) * 0.25,
+                            (Math.random() - 0.5) * 0.25
+                        ),
+                        life: 1.4,                                       // vive mais tempo (visivel mais tempo)
+                        gravity: 0.012                                    // gravidade propria mais forte
+                    });
+                    
+                    // Cap
+                    while (breakingPieces.length > 100) {  // permite mais pedacos na explosao
+                        const old = breakingPieces.shift();
+                        scene.remove(old.mesh);
+                        if (old.mesh.geometry) old.mesh.geometry.dispose();
+                        if (old.mesh.material) old.mesh.material.dispose();
+                    }
+                }
+                
+                seg.visible = false;
+            });
+        }
+
+        function updateBreakingPieces() {
+            for (let i = breakingPieces.length - 1; i >= 0; i--) {
+                const p = breakingPieces[i];
+                p.mesh.position.add(p.velocity);
+                p.velocity.y -= (p.gravity || 0.003);   // gravity custom pra explosao
+                p.mesh.rotation.x += p.rotSpeed.x;
+                p.mesh.rotation.y += p.rotSpeed.y;
+                p.mesh.rotation.z += p.rotSpeed.z;
+                
+                // Decay de vida: mais lento se viveu mais
+                const decay = p.life > 1 ? 0.012 : 0.014;
+                p.life -= decay;
+                // Opacidade so comeca a baixar quando life < 1
+                p.mesh.material.opacity = Math.min(1, p.life);
+
+                if (p.life <= 0) {
+                    scene.remove(p.mesh);
+                    if (p.mesh.geometry) p.mesh.geometry.dispose();
+                    if (p.mesh.material) p.mesh.material.dispose();
+                    breakingPieces.splice(i, 1);
+                }
+            }
+        }
+
+        function addMorePlatforms() {
+            const lastPlatform = platforms[platforms.length - 1];
+            const lastIndex = lastPlatform.index;
+            
+            for (let i = 1; i <= 12; i++) {
+                const newIndex = lastIndex + i;
+                const newPlatform = createPlatformAtIndex(newIndex, platforms.length);
+                platforms.push(newPlatform);
+            }
+            
+            // Limpa plataformas que ja sairam da view da camera (acima e fora)
+            const cleanupThresholdY = camera.position.y + 6;
+            for (let i = 0; i < currentPlatformIndex - 15 && i < platforms.length; i++) {
+                const p = platforms[i];
+                if (p && p.group && p.group.parent && !p._cleaned) {
+                    // Confirmar que esta acima da camera com folga
+                    if (p.group.position.y > cleanupThresholdY) {
+                        p.group.parent.remove(p.group);
+                        p.segments.forEach(seg => {
+                            if (seg.geometry) seg.geometry.dispose();
+                            if (seg.material) seg.material.dispose();
+                        });
+                        p._cleaned = true;
+                    }
+                }
+            }
+            
+            // Aumenta dificuldade progressivamente
+            if (obstaclesPassed > 20) {
+                CONFIG.openPercent = Math.max(0.12, GAME_CONFIG.openPercent - obstaclesPassed * 0.002);
+                CONFIG.dangerPercent = Math.min(0.35, GAME_CONFIG.dangerPercent + obstaclesPassed * 0.003);
+            }
+        }
+        
+        function createPlatformAtIndex(index, arrayIndex) {
+            const group = new THREE.Group();
+
+            const fullCircle = Math.PI * 2;
+            const openSize = fullCircle * CONFIG.openPercent;
+            const dangerSize = fullCircle * CONFIG.dangerPercent;
+
+            const openStart = 0;
+            const openEnd = openStart + openSize;
+
+            let dangerStart = openEnd + 0.55 + Math.random() * (fullCircle - openSize - dangerSize - 1.1);
+            let dangerEnd = dangerStart + dangerSize;
+            if (dangerEnd >= fullCircle) dangerEnd -= fullCircle;
+
+            const safeRanges = subtractWrappedRange(
+                [{ start: openEnd, end: openStart, wrap: true }],
+                [{ start: dangerStart, end: dangerEnd, wrap: dangerStart > dangerEnd }]
+            );
+
+            let rotationY = Math.random() * Math.PI * 2;
+
+            group.rotation.y = rotationY;
+            group.position.y = 3 - arrayIndex * CONFIG.platformGap;
+
+            const segments = [];
+            const platformColor = Math.random() > 0.5 ? 0x22c55e : 0xeab308;
+
+            safeRanges.forEach(range => {
+                const parts = unwrapRange(range.start, range.end);
+                parts.forEach(part => {
+                    const mesh = createArcMesh(part.start, part.end, platformColor);
+                    group.add(mesh);
+                    segments.push(mesh);
+                });
+            });
+
+            const dangerParts = unwrapRange(dangerStart, dangerEnd, dangerStart > dangerEnd);
+            dangerParts.forEach(part => {
+                const mesh = createArcMesh(part.start, part.end, COLORS.danger);
+                group.add(mesh);
+                segments.push(mesh);
+            });
+
+            platformRoot.add(group);
+
+            return {
+                index,
+                group,
+                segments,
+                openStart,
+                openEnd,
+                dangerStart,
+                dangerEnd,
+                broken: false
+            };
+        }
+        
+        function goToNextStage() {
+            addMorePlatforms();
+            level++;
+            updateUI();
+        }
+
+        function holdOnCurrentPlatform() {
+            const current = platforms[currentPlatformIndex];
+            if (!current || current.broken) return false;
+
+            const top = getPlatformTopY(currentPlatformIndex);
+            const bottom = ball.position.y - CONFIG.ballRadius;
+            const dist = Math.abs(bottom - top);
+
+            if (dist <= 0.14) {
+                if (ballIsOnDanger(current)) {
+                    createSplash(ball.position.clone(), COLORS.danger);
+                    gameOver();
+                    return true;
+                }
+
+                if (!ballIsOnOpen(current)) {
+                    ball.position.y = top + CONFIG.ballRadius;
+                    if (ballVelocity < 0) {
+                        ballVelocity = CONFIG.bounceForce;
+                        createSplash(ball.position.clone(), 0xffffff);
+                    }
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        // Salva progresso da partida no servidor (assincrono, nao bloqueia o jogo)
+        // Chamado a cada plataforma passada - se a pessoa der reload, retoma daqui
+        let _saveTimer = null;
+        let _lastSavedObs = -1;
+        function salvarProgressoPartida() {
+            if (GAME_CONFIG.modoTeste || GAME_CONFIG.partidaId <= 0) return;
+            // Debounce: nao salva mais que 1x a cada 800ms
+            // (varias plataformas em sequencia = combo = so o ultimo save vale)
+            if (_saveTimer) clearTimeout(_saveTimer);
+            _saveTimer = setTimeout(function(){
+                // Se nada mudou desde ultimo save, ignora
+                if (obstaclesPassed === _lastSavedObs) return;
+                _lastSavedObs = obstaclesPassed;
+                
+                try {
+                    /* partida_estado.php era do site antigo: a rodada vive em arcade_rounds. */
+                } catch (e) {}
+            }, 800);
+        }
+        
+        // Finaliza a partida no banco (chamado no lose/win)
+        function finalizarPartida(resultado) {
+            if (GAME_CONFIG.modoTeste || GAME_CONFIG.partidaId <= 0) return;
+            try {
+                /* partida_estado.php era do site antigo: a rodada vive em arcade_rounds. */
+            } catch (e) {}
+        }
+        
+        function fallToLowerPlatform(prevBottom, currBottom) {
+            for (let i = currentPlatformIndex + 1; i < platforms.length; i++) {
+                const p = platforms[i];
+                if (p.broken) continue;
+
+                const top = getPlatformTopY(i);
+
+                if (prevBottom >= top && currBottom <= top) {
+                    if (ballIsOnOpen(p)) {
+                        continue;
+                    }
+
+                    // jumped = quantas plataformas a bola atravessou ate aqui
+                    const jumped = i - currentPlatformIndex;
+                    
+                    if (ballIsOnDanger(p)) {
+                        // BONUS: se atravessou 4+ plataformas, a bola estilhaca a vermelha
+                        // e RICOCHETEIA pra cima - jogador controla a queda.
+                        // Se cair em outra vermelha depois, morre normal.
+                        if (jumped >= 4) {
+                            // Splash vermelho marcando o ponto da quebra
+                            createSplash(ball.position.clone(), COLORS.danger);
+                            
+                            // Quebra as plataformas atravessadas com efeito NORMAL
+                            for (let j = currentPlatformIndex; j < i; j++) {
+                                breakPlatform(j);
+                            }
+                            // E a vermelha quebra com efeito EXPLOSIVO (pedacos voando longe)
+                            breakPlatformExplosive(i);
+                            
+                            // Recompensa
+                            const bonusEarn = GAME_CONFIG.baseEarn * jumped * 2.5;
+                            currentBalance += bonusEarn;
+                            obstaclesPassed += jumped;
+                            score += jumped * 10;
+                            
+                            salvarProgressoPartida();   // persiste apos bonus
+                            
+                            showCombo(jumped + 1);
+                            showGainPopup(bonusEarn);
+                            
+                            // RICOCHETE: bola sobe forte (mais forte que pulo normal)
+                            // currentPlatformIndex atualiza pra plataforma vermelha (quebrada)
+                            // ballVelocity grande positiva = bola sobe
+                            currentPlatformIndex = i;
+                            ballVelocity = CONFIG.bounceForce * 1.8;  // sobe 1.8x o normal
+                            // Bola continua na posicao atual - nao teletransporta
+                            // Mantem ball.position.x e ball.position.z como estao
+                            
+                            updateBallAppearance();
+                            updateObstacleColors();
+                            updateDifficulty();
+                            updateUI();
+                            return true;
+                        } else {
+                            // Comportamento normal: morre na vermelha
+                            createSplash(ball.position.clone(), COLORS.danger);
+                            gameOver();
+                            return true;
+                        }
+                    }
+
+                    // Comportamento normal: bateu numa plataforma segura
+                    for (let j = currentPlatformIndex; j < i; j++) {
+                        breakPlatform(j);
+                    }
+
+                    // Calculate earnings - aumenta conforme passa mais obstaculos
+                    let baseEarn = GAME_CONFIG.baseEarn * (1 + obstaclesPassed * 0.05);
+                    let earned = 0;
+                    if (jumped > 1) {
+                        score += jumped * 5;
+                        earned = baseEarn * jumped * 1.5;
+                        // Combo so aparece a partir de 4 plataformas seguidas
+                        if (jumped >= 4) showCombo(jumped);
+                    } else {
+                        score += 1;
+                        earned = baseEarn;
+                    }
+                    
+                    currentBalance += earned;
+                    obstaclesPassed += jumped;
+                    
+                    salvarProgressoPartida();   // persiste no servidor (debounced 800ms)
+                    
+                    showGainPopup(earned);
+                    updateBallAppearance();
+                    updateObstacleColors();
+                    updateDifficulty();
+
+                    placeBallOnPlatform(i, false);
+
+                    if (i > 0 && i % 10 === 0) {
+                        level++;
+                    }
+
+                    updateUI();
+                    createSplash(ball.position.clone(), 0xffffff);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        function resolveBall() {
+            if (ballVelocity < -CONFIG.maxFallSpeed) {
+                ballVelocity = -CONFIG.maxFallSpeed;
+            }
+
+            const prevBottom = (ball.position.y - ballVelocity) - CONFIG.ballRadius;
+            const currBottom = ball.position.y - CONFIG.ballRadius;
+
+            if (holdOnCurrentPlatform()) return;
+            fallToLowerPlatform(prevBottom, currBottom);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function onPointerDown(e) {
+            if (!isPlaying) return;
+            isDragging = true;
+            lastMouseX = e.clientX || e.pageX;
+        }
+
+        function onTouchStart(e) {
+            if (!isPlaying) return;
+            e.preventDefault();
+            isDragging = true;
+            lastMouseX = e.touches[0].clientX;
+        }
+
+        function onPointerMove(e) {
+            if (!isDragging || !isPlaying) return;
+
+            const currentX = e.clientX || e.pageX || (e.touches && e.touches[0].clientX);
+            if (currentX === undefined) return;
+
+            const deltaX = currentX - lastMouseX;
+            platformRoot.rotation.y += deltaX * CONFIG.rotationSensitivity;
+            lastMouseX = currentX;
+        }
+
+        function onTouchMove(e) {
+            if (!isDragging || !isPlaying) return;
+            e.preventDefault();
+
+            const currentX = e.touches[0].clientX;
+            const deltaX = currentX - lastMouseX;
+            platformRoot.rotation.y += deltaX * CONFIG.rotationSensitivity;
+            lastMouseX = currentX;
+        }
+
+        function onPointerUp() {
+            isDragging = false;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (isPlaying && !gameFinished) {
+                ballVelocity -= CONFIG.gravity;
+                ball.position.y += ballVelocity;
+                // Rotacao composta: gira no X (proporcional a velocidade) + Y/Z lento pra ficar bola de futebol rolando
+                ball.rotation.x -= ballVelocity * 3.2;
+                ball.rotation.y += 0.018;
+                ball.rotation.z += 0.009;
+
+                resolveBall();
+                updateFireEffect();
+
+                const targetCamY = ball.position.y + 7.0;
+                camera.position.y += (targetCamY - camera.position.y) * CONFIG.cameraLerp;
+                
+                // Cilindro acompanha a camera - sempre centrado nela (efeito de cano infinito)
+                if (towerMesh) {
+                    towerMesh.position.y = camera.position.y;
+                }
+                
+                // Camera shake (ativado pela quebra explosiva)
+                if (window._shakeAmount && window._shakeAmount > 0.01) {
+                    camera.position.x = (Math.random() - 0.5) * window._shakeAmount;
+                    window._shakeAmount *= (window._shakeDecay || 0.92);
+                } else {
+                    camera.position.x = 0;
+                    window._shakeAmount = 0;
+                }
+                
+                camera.lookAt(0, ball.position.y - 4.5, 0);
+
+                if (currentPlatformIndex >= platforms.length - 10) {
+                    addMorePlatforms();
+                }
+
+                updateSplash();
+                updateBreakingPieces();
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // ============================================================
+        // Tutorial discreto: detecta mobile/desktop e mostra dicas
+        // ============================================================
+        (function setupTutorial(){
+            const tutEl = document.getElementById('tutorialHint');
+            if (!tutEl) return;
+            
+            // Detecta se eh mobile (touch sem mouse fino) ou desktop
+            const isMobile = ('ontouchstart' in window) && !window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+            
+            const tutMover = document.getElementById('tutMover');
+            const tutAcelerar = document.getElementById('tutAcelerar');
+            const kbdMover = document.getElementById('kbdMover');
+            const kbdAcelerar = document.getElementById('kbdAcelerar');
+            
+            if (isMobile) {
+                // Mobile: sem kbd nem teclas
+                if (tutMover)    tutMover.innerHTML    = 'Deslize na tela para girar a torre';
+                if (tutAcelerar) tutAcelerar.innerHTML = 'Toque e segure para acelerar a queda';
+            } else {
+                // Desktop: tutorial menciona teclas
+                if (tutMover)    tutMover.innerHTML    = 'Use as setas para girar a torre <kbd>A</kbd> <kbd>D</kbd>';
+                if (tutAcelerar) tutAcelerar.innerHTML = 'Segure para acelerar a queda <kbd>Espaço</kbd>';
+            }
+            
+            // Auto-some apos 8 segundos (dica so na introducao)
+            setTimeout(function(){
+                tutEl.classList.add('tut-fade-out');
+                setTimeout(function(){ tutEl.remove(); }, 600);
+            }, 8000);
+        })();
+        
+        // Aviso antes de sair se a partida esta em andamento
+        // O navegador mostra "Deseja sair desta pagina?" com botoes Sair/Ficar
+        window.addEventListener('beforeunload', function(e){
+            // So pergunta se: nao e modo teste E tem partida ativa E nao terminou
+            if (GAME_CONFIG.modoTeste) return;
+            if (GAME_CONFIG.partidaId <= 0) return;
+            if (gameFinished || !isPlaying) return;
+            
+            // Forca um save final via sendBeacon (mais confiavel que fetch durante unload)
+            try {
+                if (navigator.sendBeacon) {
+                    const blob = new Blob([JSON.stringify({
+                        acao: 'salvar_progresso',
+                        partida_id: GAME_CONFIG.partidaId,
+                        saldo_atual: currentBalance,
+                        obstaculos_passados: obstaclesPassed
+                    })], { type: 'application/json' });
+                    /* sem beacon: a rodada e liquidada por win/lost no arcade. */
+                }
+            } catch(err) {}
+            
+            // Padrao moderno: setting returnValue dispara o prompt nativo
+            e.preventDefault();
+            e.returnValue = 'Sua partida esta em andamento. Tem certeza que quer sair? Seu progresso sera salvo e voce pode retomar depois.';
+            return e.returnValue;
+        });
+        
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = null;
+
+            camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 8.5, 10);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+            document.getElementById('gameContainer').insertBefore(renderer.domElement, document.getElementById('ui'));
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.95);
+            directionalLight.position.set(5, 10, 8);
+            scene.add(directionalLight);
+
+            platformRoot = new THREE.Group();
+            scene.add(platformRoot);
+
+            createTower();
+            createBall();
+            createAllPlatforms();
+            placeBallOnPlatform(0, true);
+            updateUI();
+
+            window.addEventListener('resize', onWindowResize);
+
+            renderer.domElement.addEventListener('mousedown', onPointerDown);
+            window.addEventListener('mousemove', onPointerMove);
+            window.addEventListener('mouseup', onPointerUp);
+
+            renderer.domElement.addEventListener('touchstart', onTouchStart, { passive: false });
+            window.addEventListener('touchmove', onTouchMove, { passive: false });
+            window.addEventListener('touchend', onPointerUp);
+
+            animate();
+        }
+
+        // init() e chamado pelo bootstrap do arcade, no fim do arquivo:
+        // ele depende de startValue/targetValue, que so existem apos a rodada.
+    
+        function spawnConfetti() {
+            const colors = ['#009c59', '#fedd00', '#ffffff', '#22c55e', '#f5c500'];
+            const containers = [
+                document.getElementById('confettiContainer'),
+                document.getElementById('confettiContainerWin')
+            ];
+            containers.forEach(container => {
+                if (!container) return;
+                container.innerHTML = '';
+                const count = 50;
+                for (let i = 0; i < count; i++) {
+                    const piece = document.createElement('div');
+                    piece.className = 'confetti-piece';
+                    piece.style.left = Math.random() * 100 + '%';
+                    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    piece.style.animationDelay = (Math.random() * 0.8) + 's';
+                    piece.style.animationDuration = (2.5 + Math.random() * 1.5) + 's';
+                    if (Math.random() > 0.5) {
+                        piece.style.borderRadius = '50%';
+                        piece.style.width = '8px';
+                        piece.style.height = '8px';
+                    }
+                    container.appendChild(piece);
+                }
+            });
+        }
+</script>
+
+<script>
+// Intercepta cliques nos links de registro (modo teste) pra mostrar spinner
+// enquanto navega ate /?auth=registro - evita sensacao de "engasgou"
+(function(){
+    function ativarLoading(el, isInline){
+        if (!el || el.classList.contains('loading')) return;
+        el.classList.add('loading');
+        
+        // Salva o conteudo original pra caso o usuario volte (back button)
+        if (!el.dataset.originalHtml) {
+            el.dataset.originalHtml = el.innerHTML;
+        }
+        
+        if (isInline) {
+            el.innerHTML = '<span class="game-spinner"></span>abrindo...';
+        } else {
+            el.innerHTML = '<span class="game-spinner"></span>Carregando...';
+        }
+    }
+    
+    // Botao "CRIAR CONTA GRATIS" do lose teaser
+    document.querySelectorAll('.js-ir-registro').forEach(function(btn){
+        btn.addEventListener('click', function(e){
+            // Nao chama preventDefault - deixa o navegador fazer a navegacao normal
+            ativarLoading(btn, false);
+        });
+    });
+    
+    // Link inline do win teaser
+    document.querySelectorAll('.js-ir-registro-inline').forEach(function(link){
+        link.addEventListener('click', function(e){
+            ativarLoading(link, true);
+        });
+    });
+    
+    // Se o usuario voltou pela tecla "back" do navegador, restaura o botao
+    // (pageshow dispara quando a pagina e mostrada, inclusive do bfcache)
+    window.addEventListener('pageshow', function(ev){
+        if (ev.persisted) {
+            document.querySelectorAll('.js-ir-registro.loading, .js-ir-registro-inline.loading').forEach(function(el){
+                el.classList.remove('loading');
+                if (el.dataset.originalHtml) {
+                    el.innerHTML = el.dataset.originalHtml;
+                }
+            });
+        }
+    });
+})();
+</script>
+
+<script>
+/*
+ * Sem rodada aberta nao ha aposta nem meta. O Arcade.load() publica window.bet
+ * e a meta; so entao os valores entram no GAME_CONFIG e o jogo comeca. Quando
+ * nao existe rodada, o proprio load() devolve o jogador para a tela de escolha.
+ */
+Arcade.load().then(function (rodada) {
+    if (!rodada) { return; }
+
+    GAME_CONFIG.startValue  = Number(rodada.bet);
+    GAME_CONFIG.targetValue = Number(rodada.meta);
+
+    var s = rodada.settings || {};
+    if (s.gravity)        { GAME_CONFIG.gravity       = Number(s.gravity); }
+    if (s.open_percent)   { GAME_CONFIG.openPercent   = Number(s.open_percent); }
+    if (s.danger_percent) { GAME_CONFIG.dangerPercent = Number(s.danger_percent); }
+    if (s.base_earn)      { GAME_CONFIG.baseEarn      = Number(s.base_earn); }
+    if (s.speed_increase) { GAME_CONFIG.speedIncrease = Number(s.speed_increase); }
+
+    /*
+     * startValue, targetValue e currentBalance sao declarados com let no topo
+     * do script do jogo. Em script classico isso vive no escopo lexical global,
+     * entao da para atribuir daqui - e precisa ser antes do init(), que ja os le
+     * para desenhar o HUD.
+     */
+    startValue = GAME_CONFIG.startValue;
+    targetValue = GAME_CONFIG.targetValue;
+    currentBalance = GAME_CONFIG.startValue;
+
+    /*
+     * O botao do pop-up de derrota tinha o valor impresso pelo PHP do site
+     * antigo, que aqui sai como "Jogar R$ 0,00". Agora recebe a aposta da rodada.
+     */
+    var btnTexto = document.getElementById("btnJogarNovamenteText");
+    if (btnTexto) {
+        btnTexto.textContent = "Jogar R$ " + Number(GAME_CONFIG.startValue)
+            .toFixed(2).replace(".", ",");
+    }
+
+    init();
+});
+</script>
+<script src="../_core/originals-overlay.js?v=15"></script>
+</body>
+</html>

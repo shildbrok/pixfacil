@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <script>
+        if(localStorage.getItem('glmdataCC') !== null) {
+          localStorage.removeItem('glmdataCC');
+        }
+        if(localStorage.getItem('currentPoints') !== null) {
+          localStorage.removeItem('currentPoints');
+        }
+    </script>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/retro-games/_media/candy/icon.webp" />
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="pragma" content="no-cache">
+    <meta name="robots" content="noindex,nofollow">
+    <title>Candy Cash — Pixel Rush</title>
+    <meta name="game-slug" content="Mayas-Match" />
+    <link rel="stylesheet" href="css/stylesheet.css" type="text/css" charset="utf-8" />
+
+    <!--
+      Ordem importa aqui.
+
+      game-start.js define seu próprio fetchApi/winGame/loseGame apontando para
+      /api/retro/engine/candy/* (rotas do projeto retro). Carregando arcade-bridge.js DEPOIS
+      dele, a ponte sobrescreve essas três funções e o getData() original passa a
+      falar com /api/retro/engine/candy/info sem precisar editar game-start.js —
+      o fetchApi da ponte devolve a resposta no formato que ele espera.
+    -->
+    <script src="game-start.js"></script>
+    <script src="../_core/poki-sdk-stub.js"></script>
+    <script src="../_core/retro-bridge.js"></script>
+
+    <script src="js/custom-phaser.min.js"></script>
+    <script src="js/game.min.js"></script>
+    <style>
+      @font-face {
+        font-family: 'Gamer';
+            src: url('fonts/game.ttf') format('truetype'),
+                url('fonts/game.otf') format('opentype');
+      }
+      #focusHelper {
+        width: 100vw;
+        height: 100vh;
+        position: fixed;
+        display: none;
+        background-color: #000000;
+        opacity: 0;
+        top: 0px;
+        left: 0px;
+      }
+      #containerFormBet{
+        position: fixed;
+        font-family: 'Gamer', sans-serif;
+        width: 100vw;
+        height: 100vh;
+        background-image: url(./img/banner.webp);
+        background-size: cover;
+        background-position: center center;
+        z-index: 999;
+      }
+      #containerContent {
+        font-family: 'Gamer', sans-serif;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      #formBet{
+        width: calc(80% - 4em);
+        max-width: 400px;
+        padding: 2em;
+        background-color: #F5F5F5;
+        border: 4px solid #f3398d;
+        box-shadow: 0px 0px 20px 10px #f3398d55;
+        border-radius: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+      #formBet button {
+        font-family: 'Gamer', sans-serif;
+        padding: 20px;
+        background-color: #b013c4;
+        color: #fff;
+        font-size: 20px;
+        border: 0;
+        border-radius: 15px;
+        cursor: pointer;
+      }
+      #formBet .default_text {
+        font-family: sans-serif;
+        text-align: center;
+        text-wrap: balance;
+      }
+      .placeGameBet{
+        position: fixed;
+        top: 0px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #BA55D3;
+        width: 50%;
+        height: 75px;
+        z-index: 1000000000;
+        border-radius: 0px 0px 70px 70px;
+        border-left: 4px dotted #C71585;
+        border-right: 4px dotted #C71585;
+        border-bottom: 4px dotted #C71585;
+      }
+      .placeGame{
+        font-family: Courier New, monospace;
+        font-weight: bold;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        align-items: center;
+        color: #fff;
+        font-size: 15px;
+      }
+      .infos {
+        width: 50%;
+        text-align: center;
+      }
+
+      #finishGame {
+        position: fixed;
+        top: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #007bff;
+        border: 3px solid #ffd700;
+        color: white;
+        padding: 10px 20px;
+        font-size: 16px;
+        font-weight: bold;
+        border-radius: 10px;
+        box-shadow: 0 4px #999;
+        text-shadow: 0px 1px #000;
+        cursor: pointer;
+
+        transition: all 0.3s ease;
+      }
+
+      #finishGame:hover {
+        box-shadow: 0 2px #666;
+        transform: translateX(-50%) translateY(2px);
+      }
+
+
+      @media (max-width: 800px) {
+        .placeGameBet {
+          width: 100%;
+          height: 100px;
+          border-radius: 0;
+          border: 0;
+          border-bottom: 4px dotted #C71585;
+        }
+
+        #finishGame {
+          top: 110px;
+        }
+      }
+    </style>
+  <link rel="stylesheet" href="../_core/originals-overlay.css?v=15">
+</head>
+  <body onLoad="initGame()">
+    <div id="gameFontPreload">
+      <div style="font-family: ComicSansBold" class="fontPreload">.</div>
+    </div>
+    <div id="focusHelper"></div>
+    <div id="containerFormBet">
+      <div id="containerContent">
+        <div id="formBet">
+          <h1>Objetivo</h1>
+          <p class="default_text" id="tutorial">Falha ao carregar informações. Atualize a página e tente novamente</p>
+          <button id="startGame" style="display: none;">INICIAR</button>
+        </div>
+      </div>
+    </div>
+    <div class="placeGameBet" id="round-1" style="display: none;">
+      <div class="placeGame">
+        <div class="infos">Meta: <span class="currentMeta">R$ 9999</span></div>
+        <div class="infos">Tempo: <span class="currentTimer">00:00</span></div>
+        <div class="infos">Saldo: <span class="currentValue">R$ 0</span></div>
+      </div>
+    </div>
+    <button id="finishGame" style="display: none;">Encerrar aposta</button>
+  <script src="../_core/originals-overlay.js?v=15"></script>
+</body>
+</html>

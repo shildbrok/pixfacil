@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="description" content="Fruit Money" />
+		<meta
+			name="viewport"
+			content="width=device-width, height=device-height, user-scalable=no, initial-scale=1.0, maximum-scale=1.0"
+		/>
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+		<meta name="robots" content="noindex,nofollow" />
+		<meta name="theme-color" content="#ffffff" />
+
+		<link rel="stylesheet" href="index.css" />
+		<link rel="apple-touch-icon" sizes="180x180" href="/retro-games/_media/fruit/icon.webp" />
+		<link rel="icon" type="image/webp" href="/retro-games/_media/fruit/icon.webp" />
+
+		<title>Fruit Cash — Neon Slice</title>
+
+		<!--
+			arcade-bridge.js precisa vir antes de scripts/start.js: o start.js
+			chama Arcade.load() já na carga, então a ponte tem que existir.
+		-->
+		<script src="../_core/poki-sdk-stub.js"></script>
+		<script src="../_core/retro-bridge.js"></script>
+
+		<style>
+			body {
+				margin: 0;
+			}
+
+			.centered-div {
+				top: 2em;
+			}
+
+			/* Para telas com largura igual ou menor que 320px */
+			@media (max-width: 320px) {
+				.centered-div {
+					margin-top: 10%;
+					margin-left: 0%;
+					position: absolute;
+					z-index: 99999999;
+				}
+
+				#extra .layer {
+					position: absolute;
+					left: 0;
+					top: 0;
+					width: 320px;
+					height: 884px;
+					z-index: 10;
+				}
+			}
+
+			/* Para telas com largura igual ou menor que 375px */
+			@media (max-width: 375px) {
+				.centered-div {
+					position: absolute;
+					z-index: 99999999;
+					left: 50%;
+				}
+
+				#extra .layer {
+					position: absolute;
+					left: 0;
+					top: 0;
+					width: 375px;
+					height: 884px;
+					z-index: 10;
+				}
+			}
+
+			/* Para telas com largura igual ou menor que 425px */
+			@media (max-width: 425px) {
+				.centered-div {
+					position: absolute;
+					z-index: 99999999;
+					left: 35%;
+					transform: translate(-50%, -50%);
+				}
+
+				#extra .layer {
+					position: absolute;
+					left: 0;
+					top: 0;
+					width: 425px;
+					height: 884px;
+					z-index: 10;
+				}
+			}
+
+			/* Para telas com largura igual ou menor que 475px */
+			@media (max-width: 475px) {
+				.centered-div {
+					position: absolute;
+					z-index: 99999999;
+					left: 5%;
+					transform: translate(-50%, -50%);
+				}
+
+				#extra .layer {
+					position: absolute;
+					left: 0;
+					top: 0;
+					width: 475px;
+					height: 884px;
+					z-index: 10;
+				}
+			}
+
+			/* Para telas com largura igual ou menor que 768px */
+			@media (max-width: 768px) {
+				.centered-div {
+					position: absolute;
+					z-index: 99999999;
+					left: 5%;
+					transform: translate(-50%, -50%);
+				}
+
+				#extra .layer {
+					position: absolute;
+					left: 0;
+					top: 0;
+					width: 768px;
+					height: 884px;
+					z-index: 10;
+				}
+			}
+
+			@media (max-width: 1024px) {
+				.centered-div {
+					position: absolute;
+					z-index: 99999999;
+					left: 5%;
+					transform: translate(-50%, -50%);
+				}
+
+				#extra .layer {
+					position: absolute;
+					left: 0;
+					top: 0;
+					width: 1024px;
+					height: 884px;
+					z-index: 10;
+				}
+			}
+
+			@media (max-width: 1440px) {
+				.centered-div {
+					position: absolute;
+					z-index: 99999999;
+					left: 5%;
+					transform: translate(-50%, -50%);
+				}
+
+				#extra .layer {
+					position: absolute;
+					left: 0;
+					top: 0;
+					width: 1440px;
+					height: 884px;
+					z-index: 10;
+				}
+			}
+
+			@media (max-width: 2560px) {
+				.centered-div {
+					position: absolute;
+					z-index: 99999999;
+					left: 50%;
+					transform: translate(-50%, -50%);
+				}
+			}
+
+			#extra .layer {
+				position: absolute;
+				left: 0;
+				top: 0;
+				width: 2560px;
+				height: 884px;
+				z-index: 10;
+			}
+		</style>
+	<link rel="stylesheet" href="../_core/originals-overlay.css?v=15">
+</head>
+
+	<body>
+		<div id="extra">
+			<div class="centered-div hidden"></div>
+		</div>
+		<div id="desc">
+			<div id="browser"></div>
+		</div>
+
+		<script src="scripts/start.js"></script>
+	<script src="../_core/originals-overlay.js?v=15"></script>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<!--
+  Block Win — puzzle de blocos 8x8.
+
+  Origem: projeto br2.abilitypay.app, que era um site inteiro (login, depósito,
+  saque, indicação). Aqui ficou só o jogo: a carteira, a aposta e o pagamento
+  são os do chinesa, pela API de arcade.
+
+  arcade-bridge.js precisa vir antes de game.js: é ele quem publica window.bet,
+  Arcade.settings e Arcade.win/lose que o jogo usa.
+-->
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="robots" content="noindex,nofollow">
+    <title>Block Win — Matrix Edition</title>
+    <link rel="stylesheet" href="game.css">
+    <style>
+        /*
+         * O jogo rodava dentro do layout do site antigo, que dava o fundo e a
+         * fonte. Aqui ele ocupa o iframe inteiro, então essa base vem junto.
+         */
+        html, body {
+            margin: 0;
+            padding: 0;
+            min-height: 100%;
+            background: var(--bw-bg, #050816);
+            color: var(--bw-text, #fff);
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+            overscroll-behavior: none;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 12px 0 90px;
+            box-sizing: border-box;
+        }
+
+        #carregando {
+            color: var(--bw-muted, #9aa6c3);
+            font-size: 14px;
+            padding: 40px 16px;
+            text-align: center;
+        }
+    </style>
+<link rel="stylesheet" href="../_core/originals-overlay.css?v=15">
+</head>
+<body>
+
+<div id="carregando">Carregando a partida...</div>
+
+<div class="bw-game-shell" style="display:none" id="jogo">
+    <div class="bw-game-hud">
+        <div class="side left">👑 <span id="hudEntrada">R$ 0,00</span></div>
+        <div class="center">
+            <div class="money" id="scoreMoney">R$ 0,00</div>
+            <div class="line"></div>
+        </div>
+        <div class="side right"><span id="hudMeta">R$ 0,00</span></div>
+    </div>
+
+    <div id="board"></div>
+
+    <div id="tray">
+        <div class="slot" id="slot-0"></div>
+        <div class="slot" id="slot-1"></div>
+        <div class="slot" id="slot-2"></div>
+    </div>
+</div>
+
+<div id="overlay" class="hidden">
+    <div class="panel">
+        <h2 id="finalTitle">Fim de jogo!</h2>
+        <p id="finalMessage">Você ganhou: <strong id="finalMoney">R$ 0,00</strong></p>
+        <p style="font-size:13px;opacity:.8;">Meta: <span id="metaTexto">R$ 0,00</span></p>
+        <p id="saveStatus" style="min-height:1.2em;font-size:13px;opacity:.85;"></p>
+    </div>
+</div>
+
+<script src="../_core/retro-bridge.js"></script>
+<script>
+    /*
+     * O tabuleiro só aparece depois que a rodada carrega: montá-lo antes
+     * mostraria a grade com aposta e meta zeradas por um instante.
+     */
+    (function () {
+        var pronto = setInterval(function () {
+            if (Number(window.bet) > 0) {
+                clearInterval(pronto);
+                document.getElementById('carregando').style.display = 'none';
+                document.getElementById('jogo').style.display = '';
+            }
+        }, 60);
+    }());
+</script>
+<script src="game.js"></script>
+
+<script src="../_core/originals-overlay.js?v=15"></script>
+</body>
+</html>

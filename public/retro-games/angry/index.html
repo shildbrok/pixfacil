@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Angry Cash — Neon Siege</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+	<meta name="robots" content="noindex,nofollow">
+
+	<meta name="generator" content="Scirra Construct">
+
+	<link rel="manifest" href="appmanifest.json">
+	<link rel="icon" type="image/png" href="/retro-games/_media/angry/icon.png">
+
+	<link rel="stylesheet" href="style.css">
+
+	<!--
+		Este é um build do Construct 3: as chamadas da rodada estão dentro de
+		scripts/c3runtime.js e foram repontadas para /api/retro/engine/angry/*
+		(o original apontava para /api/retro/engine/angry/* do projeto retro).
+		Por isso este jogo não usa arcade-bridge.js — ele fala com a API direto.
+	-->
+<link rel="stylesheet" href="../_core/originals-overlay.css?v=15">
+</head>
+
+<body>
+	<noscript>
+		<div id="notSupportedWrap">
+			<h2 id="notSupportedTitle">Esse conteúdo requer JavaScript</h2>
+			<p class="notSupportedMessage">
+				JavaScript parece estar desativado. Por favor, ative-o para visualizar este conteúdo.
+			</p>
+		</div>
+	</noscript>
+	<script src="scripts/supportcheck.js"></script>
+	<script src="scripts/offlineclient.js" type="module"></script>
+	<script src="scripts/main.js" type="module"></script>
+	<!--
+		scripts/register-sw.js foi deixado de fora de propósito: o service worker
+		cacheia os arquivos do jogo e passaria a servir versão velha do
+		c3runtime.js depois de qualquer ajuste de configuração. Sem ele o jogo
+		roda igual, só não funciona offline.
+	-->
+<script src="../_core/originals-overlay.js?v=15"></script>
+</body>
+
+</html>

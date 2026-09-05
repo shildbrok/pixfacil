@@ -1,0 +1,16 @@
+<IfModule mod_mime.c>
+    AddType application/manifest+json .webmanifest
+    AddType application/javascript .js
+</IfModule>
+
+<IfModule mod_headers.c>
+    <Files "manifest.webmanifest">
+        Header always set Content-Type "application/manifest+json; charset=utf-8"
+        Header always set Cache-Control "no-cache, no-store, must-revalidate"
+    </Files>
+    <Files "service-worker.js">
+        Header always set Content-Type "application/javascript; charset=utf-8"
+        Header always set Service-Worker-Allowed "/"
+        Header always set Cache-Control "no-cache, no-store, must-revalidate"
+    </Files>
+</IfModule>

@@ -1,0 +1,1 @@
+@livewire(TomatoPHP\FilamentSimpleTheme\Livewire\TopBarStart::class)

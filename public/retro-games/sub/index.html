@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Subway Money — PixFácil Edition</title>
+    <link rel="icon" href="/retro-games/_media/sub/icon.png" type="image/png">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="viewport" content="height=device-height, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui, viewport-fit=cover" />
+    <meta name="robots" content="noindex,nofollow" />
+
+    <script src="../_core/poki-sdk-stub.js"></script>
+    <script src="../_core/retro-bridge.js"></script>
+
+    <script type="text/javascript">
+        // A loja do jogo é resetada a cada segundo para o jogador começar
+        // sempre do zero, sem itens comprados de partidas anteriores.
+        const _localStorage = window.localStorage;
+
+        function clearshop() {
+            _localStorage.setItem("ShopSettings", JSON.stringify({"purchased":{"characters":["jake"],"outfits":[],"boards":["hoverboard"],"boosts":{"consumables":{"hoverboard":0,"mysteryBox":0,"scoreBooster":0,"headstart":0},"permanents":{"jetpack":0,"sneakers":0,"magnet":0,"multiplier":0}}}}));
+            _localStorage.setItem("GameSettings", JSON.stringify({"name":"GameCash","muted":false,"tutorial":true,"adConsent":false,"wordHunt":{"word":"-OjDGO&huDGO","currentLetter":"","completed":[]},"currencies":{"coins":0,"keys":0},"highscore":0,"missions":[],"rewardedBreakPrize":0}));
+        }
+
+        setInterval(clearshop, 1000);
+
+        // O engine (js/boot.js e seguintes) lê bet, xmeta, coinRate e
+        // playerSpeed. A ponte já publica bet/coinRate/playerSpeed; aqui só se
+        // aplica a fórmula própria do subway.
+        Arcade.load().then(function (round) {
+            if (!round) { return; }
+
+            var settings = round.settings || {};
+
+            xmeta = Number(settings.meta_multiplier);
+
+            // Fórmula original preservada: no subway a moeda escala com a aposta.
+            coinRate = Number(settings.coin_rate) * Number(bet);
+
+            var script = document.createElement('script');
+            script.src = 'js/boot.js?v=' + new Date().getTime();
+            document.head.appendChild(script);
+        });
+    </script>
+
+    <style>
+        /*
+         * A fonte "right grotesk" do arquivo original vinha de um CDN externo
+         * (assets.website-files.com). Removida para o jogo não depender de rede
+         * de terceiros; as regras abaixo caem para sans-serif.
+         */
+        .primary-button {
+            padding: 16px 40px;
+            border-style: solid;
+            border-width: 4px;
+            border-color: #1f2024;
+            border-radius: 8px;
+            background-color: #5aff8e;
+            box-shadow: -3px 3px 0 0 #1f2024;
+            transition: background-color 200ms ease, transform 200ms ease, box-shadow 200ms ease;
+            font-family: right grotesk, sans-serif;
+            color: #1f2024;
+            font-size: 1.25em;
+            text-align: center;
+            letter-spacing: .12em;
+            cursor: pointer;
+        }
+
+        .primary-button:hover {
+            background-color: #e42c7f;
+            box-shadow: -6px 6px 0 0 #1f2024;
+            transform: translate(4px, -4px)
+        }
+
+        body,
+        html {
+            margin: 0;
+            height: 100%;
+            background-color: #0b316b;
+            overflow: hidden;
+            background-image: url('assets/preload/splash.png');
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        #message {
+            text-align: center;
+            font-size: 8px;
+            font-family: "Verdana", sans-serif;
+            color: #fff;
+            position: fixed;
+            width: 100%;
+            z-index: 9999;
+        }
+
+        .dot {
+            display: inline;
+            margin-left: 0.2em;
+            margin-right: 0.2em;
+            position: relative;
+            top: -1em;
+            font-size: 3.5em;
+            opacity: 0;
+            animation: showHideDot 2.5s ease-in-out infinite;
+        }
+
+        .dot.one {
+            animation-delay: 0.2s;
+        }
+
+        .dot.two {
+            animation-delay: 0.4s;
+        }
+
+        .dot.three {
+            animation-delay: 0.6s;
+        }
+
+        @keyframes showHideDot {
+            0% {
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            60% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0;
+            }
+        }
+
+        button#sair {
+            position: absolute;
+            display: none;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #52d017;
+            border-radius: 10px;
+            z-index: 100000;
+        }
+
+        button#sair:hover {
+            transform: translateX(-50%) translateX(4px) translateY(-4px);
+        }
+
+        .container-fill-meta {
+            position: absolute;
+            top: 15em;
+            right: 0;
+            height: fit-content;
+        }
+
+        .into-container-fill-meta {
+            position: relative;
+            width: 100%;
+            height: fit-content;
+            z-index: 999;
+        }
+
+        .meta-card {
+            width: max-content;
+            background-color: #0007;
+            color: #fff;
+            z-index: 10;
+            padding: 1rem;
+            text-align: center;
+            font-family: right grotesk, sans-serif;
+            font-size: 2.5em;
+            border-radius: 10px 0 0 10px;
+        }
+
+        @media (max-width: 910px) {
+            .container-fill-meta {
+                top: 16vh;
+            }
+
+            .meta-card {
+                font-size: 3vh;
+                padding: 1.5vh;
+            }
+        }
+
+        @media (max-height: 719px) {
+            .container-fill-meta {
+                top: 21vh;
+            }
+
+            .meta-card {
+                font-size: 4vh;
+                padding: 2vh;
+            }
+        }
+
+        @media (max-width: 599px) {
+            .container-fill-meta {
+                top: 16vh;
+            }
+
+            .meta-card {
+                font-size: 3vh;
+                padding: 1.5vh;
+            }
+        }
+    </style>
+
+<link rel="stylesheet" href="../_core/originals-overlay.css?v=15">
+</head>
+
+<body>
+    <button id="sair" class="primary-button">ENCERRAR APOSTA</button>
+    <script>
+        window.NOSW = true;
+        window.GAME_CONFIG = {
+            leaderboard: 'mockup',
+            bundlesPath: './bundles',
+        };
+
+        localStorage.removeItem("CharacterSettings");
+    </script>
+    <div id="message">
+        <h1>Carregando</h1>
+        <h1 class="dot one">.</h1>
+        <h1 class="dot two">.</h1>
+        <h1 class="dot three">.</h1>
+    </div>
+    <script src="js/loading.js"></script>
+    <div class="container-fill-meta" style="display:none">
+        <div class="into-container-fill-meta">
+            <div class="meta-card">
+                <span>
+                    R$
+                    <span class="meta"></span> 💰
+                </span>
+            </div>
+        </div>
+    </div>
+<script src="../_core/originals-overlay.js?v=15"></script>
+</body>
+
+</html>

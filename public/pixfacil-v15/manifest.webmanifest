@@ -1,0 +1,66 @@
+{
+  "name": "PixFácil",
+  "short_name": "PixFácil",
+  "description": "PixFácil — experiência mobile em tela cheia.",
+  "id": "/",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
+  "background_color": "#020403",
+  "theme_color": "#050806",
+  "lang": "pt-BR",
+  "categories": [
+    "games",
+    "entertainment"
+  ],
+  "icons": [
+    {
+      "src": "/pixfacil-v15/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pixfacil-v15/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pixfacil-v15/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Retro Arcade",
+      "short_name": "Arcade",
+      "url": "/retro",
+      "icons": [
+        {
+          "src": "/pixfacil-v15/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Meu perfil",
+      "short_name": "Perfil",
+      "url": "/profile/account",
+      "icons": [
+        {
+          "src": "/pixfacil-v15/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "orientation": "any"
+}

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<meta name="robots" content="noindex,nofollow" />
+		<link rel="shortcut icon" type="image/webp" href="/retro-games/_media/pacman/icon.webp" />
+		<link
+			href="https://fonts.googleapis.com/css?family=Press+Start+2P&amp;display=swap"
+			rel="stylesheet"
+		/>
+		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+
+		<!--
+			build/app.css é o estilo do jogo e não estava linkado no arquivo
+			original do retro — sem ele o labirinto e o HUD ficam sem formatação.
+		-->
+		<link rel="stylesheet" href="build/app.css" />
+
+		<title>Pacman Cash — Neon Edition</title>
+
+		<script src="../_core/poki-sdk-stub.js"></script>
+		<script src="../_core/retro-bridge.js"></script>
+
+		<script>
+			/*
+			 * O engine (build/app.js) lê estas variáveis com prefixo _ no escopo
+			 * do script. Precisam continuar declaradas com let aqui, como no
+			 * original, senão o app.js não as encontra.
+			 */
+			let _lives = 1
+			let _bet = 1
+			let _meta_multiplier = 1
+			let _coin_rate = 0.01
+			let _ghost_points = 1
+
+			Arcade.load().then(function (round) {
+				if (!round) { return }
+
+				var settings = round.settings || {}
+
+				_bet = Number(round.bet)
+				_lives = Number(settings.lives)
+				_meta_multiplier = Number(settings.meta_multiplier)
+				_ghost_points = Number(settings.ghost_points)
+
+				// Fórmula original preservada: a taxa por moeda escala com a aposta.
+				_coin_rate = Number(settings.coin_rate) * _bet
+
+				var script = document.createElement("script")
+				script.src = "build/app.js"
+
+				script.onload = function () {
+					var script2 = document.createElement("script")
+					script2.innerHTML =
+						"let gameCoordinator = new GameCoordinator()\n" +
+						"document.body.style.overflow = \"\""
+
+					document.body.appendChild(script2)
+				}
+
+				document.head.appendChild(script)
+			})
+		</script>
+	<link rel="stylesheet" href="../_core/originals-overlay.css?v=15">
+</head>
+
+	<body style="overflow: hidden">
+		<div id="overflow-mask" class="overflow-mask">
+			<img id="backdrop" class="backdrop" src="app/style/graphics/backdrop.png" />
+
+			<div id="fps-display" class="fps-display"></div>
+			<div id="preload-div" class="preload-div"></div>
+
+			<div id="main-menu-container" class="main-menu-container">
+				<img id="logo" class="logo" src="app/style/graphics/pacman_logo.png" />
+				<button id="game-start" class="game-start">Iniciar</button>
+			</div>
+
+			<div class="header-buttons">
+				<button>
+					<i id="sound-button" class="material-icons"></i>
+				</button>
+			</div>
+
+			<div id="paused-text" class="paused-text"></div>
+
+			<div id="game-ui" class="game-ui">
+				<div id="row-top" class="row top">
+					<div class="column" style="text-align: left">
+						<div class="one-up">Moedas</div>
+						<div id="points-display"></div>
+					</div>
+					<div class="column" style="text-align: right">
+						<div>Meta</div>
+						<div id="high-score-display"></div>
+					</div>
+				</div>
+
+				<div id="checkout"></div>
+
+				<div id="maze" class="maze">
+					<img
+						id="maze-img"
+						class="maze-img"
+						src="app/style/graphics/spriteSheets/maze/maze_blue.svg"
+					/>
+					<div id="maze-cover" class="maze-cover"></div>
+					<div id="dot-container"></div>
+					<p id="pacman" class="pacman"></p>
+					<p id="pacman-arrow" class="pacman"></p>
+					<p id="clyde" class="ghost"></p>
+					<p id="inky" class="ghost"></p>
+					<p id="pinky" class="ghost"></p>
+					<p id="blinky" class="ghost"></p>
+				</div>
+
+				<div id="bottom-row" class="row bottom">
+					<div id="extra-lives" class="extra-lives"></div>
+					<div id="fruit-display" class="fruit-display"></div>
+				</div>
+			</div>
+
+			<div id="movement-buttons" class="movement-buttons">
+				<div class="row">
+					<div class="empty"></div>
+					<button id="button-up" class="button-up">
+						<i class="material-icons">keyboard_arrow_up</i>
+					</button>
+					<div class="empty"></div>
+				</div>
+				<div class="row">
+					<button id="button-left" class="button-left">
+						<i class="material-icons">keyboard_arrow_left</i>
+					</button>
+					<div class="empty"></div>
+					<button id="button-right" class="button-right">
+						<i class="material-icons">keyboard_arrow_right</i>
+					</button>
+				</div>
+				<div class="row">
+					<div class="empty"></div>
+					<button id="button-down" class="button-down">
+						<i class="material-icons">keyboard_arrow_down</i>
+					</button>
+					<div class="empty"></div>
+				</div>
+			</div>
+
+			<div id="left-cover" class="loading-cover left"></div>
+			<div id="right-cover" class="loading-cover right"></div>
+			<div id="loading-container" class="loading-container">
+				<div id="loading-pacman" class="loading-pacman"></div>
+				<div id="loading-dot-mask" class="loading-dot-mask"></div>
+				<div class="loading-dot _5"></div>
+				<div class="loading-dot _10"></div>
+				<div class="loading-dot _15"></div>
+				<div class="loading-dot _20"></div>
+				<div class="loading-dot _25"></div>
+				<div class="loading-dot _30"></div>
+				<div class="loading-dot _35"></div>
+				<div class="loading-dot _40"></div>
+				<div class="loading-dot _45"></div>
+				<div class="loading-dot _50"></div>
+				<div class="loading-dot _55"></div>
+				<div class="loading-dot _60"></div>
+				<div class="loading-dot _65"></div>
+				<div class="loading-dot _70"></div>
+				<div class="loading-dot _75"></div>
+				<div class="loading-dot _80"></div>
+				<div class="loading-dot _85"></div>
+				<div class="loading-dot _90"></div>
+				<div class="loading-dot _95"></div>
+			</div>
+
+			<div id="error-message" class="error-message">
+				<div class="header">
+					<div>OOPS!</div>
+					<div class="error-pacman"></div>
+				</div>
+				<div class="body">
+					Não foi possível carregar as imagens/sons necessários para jogar o jogo.
+
+					<br /><br />
+
+					Isso pode ser devido a uma conexão ruim, uma política de rede estrita ou por
+					jogar em um navegador não suportado.
+				</div>
+			</div>
+
+			<noscript>
+				<div id="error-message" class="error-message">
+					<div class="header">
+						<div>OOPS!</div>
+						<div class="error-pacman"></div>
+					</div>
+					<div class="body">
+						Não foi possível carregar as imagens/sons necessários para jogar o jogo.
+
+						<br /><br />
+
+						Isso pode ser devido a uma conexão ruim, uma política de rede estrita ou por
+						jogar em um navegador não suportado.
+					</div>
+				</div>
+			</noscript>
+		</div>
+	<script src="../_core/originals-overlay.js?v=15"></script>
+</body>
+</html>
