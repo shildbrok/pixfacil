@@ -4,6 +4,7 @@
   body.pf-desktop-owned{min-height:100vh;color:var(--pfd-text)!important;background:radial-gradient(circle at 16% -5%,rgba(57,242,92,.08),transparent 25%),radial-gradient(circle at 84% 7%,rgba(57,242,92,.045),transparent 22%),linear-gradient(180deg,#040705 0,#020302 68%,#010201 100%)!important;overflow-x:hidden}
   body.pf-desktop-owned:before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.22;background-image:linear-gradient(rgba(255,255,255,.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.012) 1px,transparent 1px);background-size:42px 42px;mask-image:linear-gradient(to bottom,#000,transparent 74%)}
   body.pf-desktop-owned>#ondagamesv1{position:relative;z-index:1;min-height:100vh;padding-top:92px!important}
+  body.pf-desktop-owned.pf-desktop-has-hero>#ondagamesv1{padding-top:0!important}
   body.pf-desktop-owned #ondagamesv1>.navtop-color,body.pf-desktop-owned #ondagamesv1>header,body.pf-desktop-owned #ondagamesv1 [data-desktop-legacy-header]{display:none!important}
 
   #pf-desktop-chrome{position:fixed;z-index:2147481000;left:0;right:0;top:0;height:78px;border-bottom:1px solid rgba(57,242,92,.13);background:linear-gradient(180deg,rgba(5,9,6,.96),rgba(3,5,4,.90));backdrop-filter:blur(18px) saturate(1.25);box-shadow:0 12px 40px rgba(0,0,0,.30)}
@@ -12,7 +13,7 @@
   .pfd-nav{display:flex;align-items:center;justify-content:center;gap:7px}.pfd-nav a{position:relative;display:flex;align-items:center;gap:8px;height:42px;padding:0 14px;border:1px solid transparent;border-radius:13px;color:#b9c1bb;text-decoration:none;font-size:13px;font-weight:760;transition:.22s ease}.pfd-nav a:hover,.pfd-nav a.active{color:#fff;border-color:rgba(57,242,92,.18);background:rgba(57,242,92,.055);transform:translateY(-1px)}.pfd-nav a.active:after{content:"";position:absolute;left:14px;right:14px;bottom:-18px;height:2px;border-radius:999px;background:var(--pfd-green);box-shadow:0 0 13px rgba(57,242,92,.55)}
   .pfd-actions{display:flex;align-items:center;gap:9px}.pfd-actions a{height:42px;display:inline-flex;align-items:center;justify-content:center;padding:0 15px;border-radius:13px;text-decoration:none;font-size:12px;font-weight:850;transition:.22s ease}.pfd-actions .ghost{border:1px solid rgba(255,255,255,.12);background:#080b09;color:#e8ece9}.pfd-actions .ghost:hover{border-color:rgba(57,242,92,.32);color:var(--pfd-green)}.pfd-actions .primary{border:1px solid #55f170;background:linear-gradient(135deg,#5af174,#24cf49);color:#031006;box-shadow:0 10px 28px rgba(57,242,92,.13)}.pfd-actions .primary:hover{transform:translateY(-2px);box-shadow:0 14px 34px rgba(57,242,92,.19)}
 
-  #pf-desktop-hero-mount{position:relative;z-index:2;width:min(1440px,calc(100% - 56px));margin:18px auto 28px}
+  #pf-desktop-hero-mount{position:relative;z-index:2;width:min(1440px,calc(100% - 56px));margin:100px auto 28px}
   .pfd-hero{position:relative;height:clamp(260px,29vw,430px);overflow:hidden;border:1px solid rgba(57,242,92,.24);border-radius:26px;background:#071008;box-shadow:0 30px 80px rgba(0,0,0,.34),inset 0 1px rgba(255,255,255,.04)}
   .pfd-hero:before{content:"";position:absolute;z-index:3;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(0,0,0,.25),transparent 40%,rgba(0,0,0,.08)),linear-gradient(180deg,transparent 58%,rgba(0,0,0,.28))}
   .pfd-hero:after{content:"";position:absolute;z-index:4;top:-100%;bottom:-100%;left:-28%;width:18%;transform:skewX(-16deg);background:linear-gradient(90deg,transparent,rgba(255,255,255,.10),transparent);animation:pfdSweep 8s ease-in-out infinite;pointer-events:none}
@@ -31,6 +32,6 @@
 
   @keyframes pfdSweep{0%,62%{left:-28%;opacity:0}68%{opacity:1}90%,100%{left:118%;opacity:0}}
   @keyframes pfdRise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-  @media(max-width:1080px){.pfd-top{width:calc(100% - 28px);gap:12px}.pfd-nav a{padding:0 9px;font-size:11px}.pfd-brand img{max-width:165px}.pfd-actions a{padding:0 11px}}
+  @media(max-width:1080px){.pfd-top{width:calc(100% - 28px);gap:12px}.pfd-nav a{padding:0 9px;font-size:11px}.pfd-brand img{max-width:165px}.pfd-actions a{padding:0 11px}#pf-desktop-hero-mount{width:calc(100% - 32px)}}
   @media(prefers-reduced-motion:reduce){.pfd-hero:after,.pfd-slide,body.pf-desktop-owned #ondagamesv1 section,body.pf-desktop-owned #ondagamesv1 [class*="card"]{animation:none!important;transition:none!important}}
 }
