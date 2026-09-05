@@ -1,76 +1,88 @@
-@media (min-width:768px){
-  body.pf15-owned-server{background:#020403!important;color:#f7faf8!important}
-  body.pf15-owned-server:not(.pf-desktop-home) #ondagamesv1{min-height:100vh;background:radial-gradient(circle at 70% 0,rgba(57,242,92,.06),transparent 28%),#020403!important}
-  body.pf15-owned-server:not(.pf-content-page-login):not(.pf-content-page-register):not(.pf-content-page-forgot) #ondagamesv1{padding-left:190px!important;padding-top:72px!important}
-  body.pf15-owned-server #ondagamesv1 main{max-width:1280px;margin:0 auto!important;padding:32px 28px 56px!important}
-  body.pf15-owned-server #ondagamesv1 [class*="bg-"]{background-color:transparent}
-  body.pf15-owned-server #ondagamesv1 input,
-  body.pf15-owned-server #ondagamesv1 select,
-  body.pf15-owned-server #ondagamesv1 textarea{border-radius:14px!important;border-color:#2e3832!important;background:#060907!important;color:#fff!important;box-shadow:none!important}
-  body.pf15-owned-server #ondagamesv1 input:focus,
-  body.pf15-owned-server #ondagamesv1 select:focus,
-  body.pf15-owned-server #ondagamesv1 textarea:focus{border-color:#39f25c!important;box-shadow:0 0 0 3px rgba(57,242,92,.08)!important}
-  body.pf15-owned-server #ondagamesv1 button,
-  body.pf15-owned-server #ondagamesv1 a{transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease,background-color .18s ease}
-  body.pf15-owned-server #ondagamesv1 button:hover,
-  body.pf15-owned-server #ondagamesv1 a:hover{transform:translateY(-1px)}
-
-  body.pf-content-page-login,
-  body.pf-content-page-register,
-  body.pf-content-page-forgot{background:radial-gradient(circle at 20% 0,rgba(57,242,92,.08),transparent 28%),radial-gradient(circle at 90% 20%,rgba(57,242,92,.05),transparent 22%),#020403!important}
-  body.pf-content-page-login #ondagamesv1,
-  body.pf-content-page-register #ondagamesv1,
-  body.pf-content-page-forgot #ondagamesv1{display:flex!important;align-items:center;justify-content:center;min-height:100vh!important;padding:40px 24px!important;background:transparent!important}
-  body.pf-content-page-login #ondagamesv1>*,
-  body.pf-content-page-register #ondagamesv1>*,
-  body.pf-content-page-forgot #ondagamesv1>*{width:min(100%,560px)!important;max-width:560px!important;margin:0 auto!important}
-  body.pf-content-page-login #ondagamesv1 form,
-  body.pf-content-page-register #ondagamesv1 form,
-  body.pf-content-page-forgot #ondagamesv1 form{border:1px solid rgba(57,242,92,.28)!important;border-radius:26px!important;background:linear-gradient(180deg,rgba(10,15,12,.98),rgba(4,7,5,.99))!important;box-shadow:0 30px 90px rgba(0,0,0,.52),0 0 0 1px rgba(255,255,255,.02) inset!important;padding:28px!important}
-  body.pf-content-page-login #ondagamesv1 h1,
-  body.pf-content-page-login #ondagamesv1 h2,
-  body.pf-content-page-register #ondagamesv1 h1,
-  body.pf-content-page-register #ondagamesv1 h2,
-  body.pf-content-page-forgot #ondagamesv1 h1,
-  body.pf-content-page-forgot #ondagamesv1 h2{color:#fff!important;font-size:30px!important;font-weight:900!important;letter-spacing:-.8px!important}
-  body.pf-content-page-login #ondagamesv1 p,
-  body.pf-content-page-register #ondagamesv1 p,
-  body.pf-content-page-forgot #ondagamesv1 p{color:#9ca59f!important}
-  body.pf-content-page-login #ondagamesv1 button[type="submit"],
-  body.pf-content-page-register #ondagamesv1 button[type="submit"],
-  body.pf-content-page-forgot #ondagamesv1 button[type="submit"]{min-height:52px!important;border-radius:14px!important;border:1px solid #5df577!important;background:linear-gradient(145deg,#5df577,#27d24b)!important;color:#031006!important;font-weight:900!important;box-shadow:0 14px 30px rgba(57,242,92,.14)!important}
-  body.pf-content-page-login #ondagamesv1 img,
-  body.pf-content-page-register #ondagamesv1 img,
-  body.pf-content-page-forgot #ondagamesv1 img{max-width:220px!important;max-height:64px!important;object-fit:contain!important}
-
-  body.pf-content-page-profile #ondagamesv1 main,
-  body.pf-content-page-deposit #ondagamesv1 main,
-  body.pf-content-page-withdraw #ondagamesv1 main,
-  body.pf-content-page-transactions #ondagamesv1 main,
-  body.pf-content-page-bets #ondagamesv1 main,
-  body.pf-content-page-kyc #ondagamesv1 main,
-  body.pf-content-page-affiliate #ondagamesv1 main,
-  body.pf-content-page-support #ondagamesv1 main,
-  body.pf-content-page-responsible #ondagamesv1 main,
-  body.pf-content-page-bonus #ondagamesv1 main,
-  body.pf-content-page-vip #ondagamesv1 main,
-  body.pf-content-page-missions #ondagamesv1 main{padding-top:34px!important}
-
-  body.pf15-owned-server #ondagamesv1 table{width:100%;border-collapse:separate!important;border-spacing:0 8px!important}
-  body.pf15-owned-server #ondagamesv1 table tr{background:#070a08!important}
-  body.pf15-owned-server #ondagamesv1 table td,
-  body.pf15-owned-server #ondagamesv1 table th{border-color:#202823!important;color:#eaf0ec!important;padding:14px 16px!important}
-  body.pf15-owned-server #ondagamesv1 table th{color:#8f9892!important;font-size:12px!important;text-transform:uppercase!important;letter-spacing:.05em!important}
-
-  body.pf15-owned-server #ondagamesv1 [class*="rounded"],
-  body.pf15-owned-server #ondagamesv1 section,
-  body.pf15-owned-server #ondagamesv1 article{border-color:rgba(255,255,255,.08)}
+/*
+ * PixFácil V15 — isolamento do frontend unificado.
+ * Em rotas owned o frontend legado nunca deve participar do primeiro paint.
+ * O renderer V15 usa #pixfacil-v15-app em mobile e desktop.
+ */
+body.pf15-owned-server{
+  background:#000!important;
+  color:#f7f9f7!important;
+  min-height:100vh;
 }
 
-@media (min-width:1024px){
-  body.pf15-owned-server:not(.pf-content-page-login):not(.pf-content-page-register):not(.pf-content-page-forgot) #ondagamesv1{padding-left:190px!important}
+body.pf15-owned-server #ondagamesv1{
+  position:fixed!important;
+  left:-400vw!important;
+  top:0!important;
+  width:100vw!important;
+  min-height:100vh!important;
+  visibility:hidden!important;
+  opacity:0!important;
+  pointer-events:none!important;
+  overflow:hidden!important;
+}
+
+body.pf15-owned-server #pixfacil-v15-app{
+  display:block!important;
+  position:relative;
+  z-index:2147480000;
+  min-height:100vh;
+  background:#000;
+  color:#f7f9f7;
+  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+
+.pf15-server-boot{
+  position:fixed;
+  inset:0;
+  z-index:2147480100;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:20px;
+  padding:28px;
+  background:radial-gradient(circle at 50% 38%,rgba(57,242,92,.09),transparent 26%),#000;
+}
+
+.pf15-server-boot img{
+  display:block;
+  width:min(220px,58vw);
+  max-height:72px;
+  object-fit:contain;
+}
+
+.pf15-server-boot-bar{
+  width:min(210px,52vw);
+  height:5px;
+  overflow:hidden;
+  border:1px solid rgba(57,242,92,.25);
+  border-radius:999px;
+  background:#09100b;
+}
+
+.pf15-server-boot-bar::after{
+  content:"";
+  display:block;
+  width:46%;
+  height:100%;
+  border-radius:inherit;
+  background:linear-gradient(90deg,#20c944,#5df577);
+  box-shadow:0 0 14px rgba(57,242,92,.35);
+  animation:pf15ServerBoot .8s ease-in-out infinite alternate;
+}
+
+.pf15-server-boot small{
+  color:#8f9892;
+  font-size:11px;
+  letter-spacing:.02em;
+}
+
+@keyframes pf15ServerBoot{
+  from{transform:translateX(-20%)}
+  to{transform:translateX(140%)}
 }
 
 @media (prefers-reduced-motion:reduce){
-  body.pf15-owned-server *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  .pf15-server-boot-bar::after{animation:none;width:100%}
+  body.pf15-owned-server *{scroll-behavior:auto!important}
 }
