@@ -21,7 +21,7 @@
 
     <link rel="shortcut icon" href="{{ $favicon }}" type="image/x-icon">
     <link rel="apple-touch-icon" href="{{ $favicon }}" type="image/x-icon">
-    <link rel="manifest" href="{{ asset('pixfacil-v15/manifest.webmanifest') }}?v=20260905-1648">
+    <link rel="manifest" href="{{ asset('pixfacil-v15/manifest.webmanifest') }}?v=20260905-1800">
     <meta name="theme-color" content="#050806">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -125,9 +125,11 @@
         $requestPath = '/' . trim(request()->path(), '/');
         if ($requestPath === '/') $requestPath = '/';
 
+        $authRoute = (bool) preg_match('#^/(?:login|register|forget-password|forgot-password|reset-password)(?:/|$)#i', $requestPath);
+
         $ownedRoute =
             $requestPath === '/'
-            || preg_match('#^/(?:login|register|forget-password|forgot-password|reset-password)(?:/|$)#i', $requestPath)
+            || $authRoute
             || preg_match('#^/(?:casino|pesquisar|search)(?:/|$)#i', $requestPath)
             || preg_match('#^/profile/(?:account|deposit|withdraw|transactions|bets|affiliate|verification|responsible-gaming|identity|experience)(?:/|$)#i', $requestPath)
             || preg_match('#^/support-center(?:/|$)#i', $requestPath)
@@ -141,6 +143,7 @@
         $ownedRoute = $ownedRoute && ! $excludedRoute;
         $gameRoute = preg_match('#^/games/play(?:/|$)#i', $requestPath)
             || preg_match('#^/sport(?:book)?/play(?:/|$)#i', $requestPath);
+        $desktopShellRoute = ! $authRoute && ! $excludedRoute;
     @endphp
 
     <script>
@@ -149,10 +152,16 @@
         window.PIXFACIL_V13_GAME_ROUTE = @json((bool) $gameRoute);
     </script>
 
-    <link rel="stylesheet" href="{{ asset('pixfacil-v15/pixfacil-v15.css') }}?v=20260905-1648">
-    <link rel="stylesheet" href="{{ asset('pixfacil-v15/pixfacil-desktop.css') }}?v=20260905-1648">
-    <script defer src="{{ asset('pixfacil-v15/pixfacil-v15.js') }}?v=20260905-1648"></script>
-    <script defer src="{{ asset('pixfacil-v15/pixfacil-desktop.js') }}?v=20260905-1648"></script>
+    <link rel="stylesheet" href="{{ asset('pixfacil-v15/pixfacil-v15.css') }}?v=20260905-1800">
+    @if ($desktopShellRoute)
+        <link rel="stylesheet" href="{{ asset('pixfacil-v15/pixfacil-desktop.css') }}?v=20260905-1800">
+    @endif
+    <script defer src="{{ asset('pixfacil-v15/pixfacil-v15.js') }}?v=20260905-1800"></script>
+    @if ($desktopShellRoute)
+        <script defer src="{{ asset('pixfacil-v15/pixfacil-desktop.js') }}?v=20260905-1800"></script>
+    @else
+        <script defer src="{{ asset('pixfacil-v15/pixfacil-desktop-auth-guard.js') }}?v=20260905-1800"></script>
+    @endif
 </head>
 
 <body color-theme="dark" class="bg-base{{ $ownedRoute ? ' pf15-owned-server' : '' }}{{ $gameRoute ? ' pf13-player-server' : '' }}">
