@@ -1,7 +1,5 @@
 <?php
 
-
-
 namespace App\Filament\Pages;
 
 use App\Models\Banner;
@@ -11,8 +9,10 @@ use Filament\Pages\Page;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\BulkAction;
 use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Enums\FiltersLayout;
@@ -28,7 +28,6 @@ class AdminBannersPage extends Page implements HasTable
     use InteractsWithTable;
 
     protected static string $view = 'filament.pages.admin-banners-page';
-
     protected static ?string $title = 'Banners da Plataforma';
     protected static ?string $navigationLabel = 'Banners da Plataforma';
     protected static ?string $navigationGroup = 'Tema e Aparência';
@@ -43,7 +42,7 @@ class AdminBannersPage extends Page implements HasTable
 
     public static function shouldRegisterNavigation(): bool
     {
-        return auth()->check() && auth()->user()->hasRole('admin');
+        return static::canAccess();
     }
 
     public function stats(): array
@@ -52,10 +51,11 @@ class AdminBannersPage extends Page implements HasTable
 
         return [
             'total' => (clone $base)->count(),
+            'active' => (clone $base)->where('is_active', true)->count(),
+            'desktop' => (clone $base)->where('is_active', true)->where('show_desktop', true)->count(),
+            'mobile' => (clone $base)->where('is_active', true)->where('show_mobile', true)->count(),
             'carousel' => (clone $base)->where('type', 'carousel')->count(),
             'home' => (clone $base)->where('type', 'home')->count(),
-            'with_link' => (clone $base)->whereNotNull('link')->where('link', '!=', '')->count(),
-            'without_link' => (clone $base)->where(fn (Builder $query) => $query->whereNull('link')->orWhere('link', ''))->count(),
             'latest' => (clone $base)->latest('updated_at')->value('updated_at'),
         ];
     }
@@ -63,7 +63,9 @@ class AdminBannersPage extends Page implements HasTable
     public function getPreviewBanners(): Collection
     {
         return Banner::query()
-            ->latest('updated_at')
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderByDesc('updated_at')
             ->limit(6)
             ->get();
     }
@@ -72,18 +74,22 @@ class AdminBannersPage extends Page implements HasTable
     {
         return $table
             ->deferLoading()
-            ->query($this->bannerQuery())
-            ->defaultSort('updated_at', 'desc')
+            ->query(Banner::query())
+            ->defaultSort('sort_order')
             ->paginated([10, 25, 50, 100])
             ->defaultPaginationPageOption(25)
+            ->reorderable('sort_order')
             ->columns([
                 ImageColumn::make('image')
                     ->label('Imagem')
                     ->size(92)
                     ->square()
-                    ->extraImgAttributes([
-                        'class' => 'rounded-xl object-cover',
-                    ]),
+                    ->extraImgAttributes(['class' => 'rounded-xl object-cover']),
+
+                TextColumn::make('sort_order')
+                    ->label('Ordem')
+                    ->sortable()
+                    ->alignCenter(),
 
                 TextColumn::make('type')
                     ->label('Posição')
@@ -92,20 +98,22 @@ class AdminBannersPage extends Page implements HasTable
                     ->formatStateUsing(fn (?string $state): string => $this->typeLabel($state))
                     ->color(fn (?string $state): string => $this->typeColor($state)),
 
+                ToggleColumn::make('is_active')->label('Ativo'),
+                ToggleColumn::make('show_desktop')->label('Desktop'),
+                ToggleColumn::make('show_mobile')->label('Mobile'),
+
                 TextColumn::make('description')
                     ->label('Descrição')
-                    ->limit(70)
+                    ->limit(55)
                     ->searchable()
                     ->tooltip(fn (Banner $record): ?string => $record->description)
                     ->placeholder('-'),
 
                 TextColumn::make('link')
                     ->label('Link')
-                    ->limit(45)
+                    ->limit(36)
                     ->copyable()
                     ->copyMessage('Link copiado.')
-                    ->url(fn (Banner $record): ?string => filled($record->link) ? $record->link : null, true)
-                    ->openUrlInNewTab()
                     ->searchable()
                     ->placeholder('-'),
 
@@ -113,26 +121,17 @@ class AdminBannersPage extends Page implements HasTable
                     ->label('Atualizado')
                     ->dateTime('d/m/Y H:i')
                     ->sortable()
-                    ->description(fn (Banner $record): ?string => $record->updated_at?->diffForHumans()),
-
-                TextColumn::make('id')
-                    ->label('#')
-                    ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Filter::make('search')
                     ->label('Buscar')
                     ->form([
-                        Forms\Components\TextInput::make('value')
-                            ->label('Descrição, link ou imagem'),
+                        Forms\Components\TextInput::make('value')->label('Descrição, link ou imagem'),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         $search = trim((string) ($data['value'] ?? ''));
-
-                        if ($search === '') {
-                            return $query;
-                        }
+                        if ($search === '') return $query;
 
                         return $query->where(function (Builder $subQuery) use ($search) {
                             $subQuery->where('description', 'like', "%{$search}%")
@@ -143,23 +142,17 @@ class AdminBannersPage extends Page implements HasTable
 
                 SelectFilter::make('type')
                     ->label('Posição')
-                    ->options([
-                        'carousel' => 'Carrossel',
-                        'home' => 'Página Inicial',
-                    ])
+                    ->options(['carousel' => 'Carrossel', 'home' => 'Página Inicial'])
                     ->placeholder('Todas'),
 
-                Filter::make('has_link')
-                    ->label('Com link')
-                    ->query(fn (Builder $query): Builder => $query->whereNotNull('link')->where('link', '!=', ''))
-                    ->toggle(),
+                SelectFilter::make('is_active')
+                    ->label('Status')
+                    ->options(['1' => 'Ativos', '0' => 'Inativos']),
 
-                Filter::make('without_link')
-                    ->label('Sem link')
-                    ->query(fn (Builder $query): Builder => $query->where(fn (Builder $subQuery) => $subQuery->whereNull('link')->orWhere('link', '')))
-                    ->toggle(),
+                Filter::make('desktop')->label('Desktop')->query(fn (Builder $query): Builder => $query->where('show_desktop', true))->toggle(),
+                Filter::make('mobile')->label('Mobile')->query(fn (Builder $query): Builder => $query->where('show_mobile', true))->toggle(),
             ], layout: FiltersLayout::AboveContentCollapsible)
-            ->filtersFormColumns(4)
+            ->filtersFormColumns(5)
             ->headerActions([
                 Action::make('create_banner')
                     ->label('Novo banner')
@@ -168,7 +161,7 @@ class AdminBannersPage extends Page implements HasTable
                     ->slideOver()
                     ->modalWidth('3xl')
                     ->modalHeading('Cadastrar novo banner')
-                    ->modalDescription('Envie a imagem, escolha a posição e configure link/descrição.')
+                    ->modalDescription('Envie a arte, defina a ordem e escolha em quais dispositivos ela aparece.')
                     ->form($this->bannerFormSchema())
                     ->action(function (array $data): void {
                         $payload = $this->normalizeBannerPayload($data);
@@ -176,19 +169,14 @@ class AdminBannersPage extends Page implements HasTable
                         if (blank($payload['image'] ?? null)) {
                             Notification::make()
                                 ->title('Imagem obrigatória')
-                                ->body('O upload não retornou o caminho da imagem. Verifique a permissão de storage/app/public/uploads e tente reenviar.')
+                                ->body('O upload não retornou o caminho da imagem.')
                                 ->danger()
                                 ->send();
-
                             return;
                         }
 
-                        Banner::create($payload);
-
-                        Notification::make()
-                            ->title('Banner cadastrado')
-                            ->success()
-                            ->send();
+                        Banner::query()->create($payload);
+                        Notification::make()->title('Banner cadastrado')->success()->send();
                     }),
             ])
             ->actions([
@@ -211,7 +199,7 @@ class AdminBannersPage extends Page implements HasTable
                     ->icon('heroicon-o-pencil-square')
                     ->color('warning')
                     ->slideOver()
-                    ->modalWidth('2xl')
+                    ->modalWidth('3xl')
                     ->modalHeading(fn (Banner $record): string => 'Editar banner #' . $record->id)
                     ->form($this->bannerFormSchema(isEdit: true))
                     ->fillForm(fn (Banner $record): array => [
@@ -219,14 +207,14 @@ class AdminBannersPage extends Page implements HasTable
                         'description' => $record->description,
                         'link' => $record->link,
                         'image' => $record->image,
+                        'is_active' => $record->is_active,
+                        'sort_order' => $record->sort_order,
+                        'show_desktop' => $record->show_desktop,
+                        'show_mobile' => $record->show_mobile,
                     ])
                     ->action(function (Banner $record, array $data): void {
                         $record->update($this->normalizeBannerPayload($data, $record));
-
-                        Notification::make()
-                            ->title('Banner atualizado')
-                            ->success()
-                            ->send();
+                        Notification::make()->title('Banner atualizado')->success()->send();
                     }),
 
                 Action::make('delete')
@@ -235,92 +223,77 @@ class AdminBannersPage extends Page implements HasTable
                     ->color('danger')
                     ->requiresConfirmation()
                     ->modalHeading('Excluir banner?')
-                    ->modalDescription('Essa ação remove apenas o registro do banner. O arquivo físico não será apagado automaticamente.')
+                    ->modalDescription('Se quiser apenas tirar do ar, prefira desativar o banner.')
                     ->modalSubmitActionLabel('Sim, excluir')
                     ->action(function (Banner $record): void {
                         $record->delete();
-
-                        Notification::make()
-                            ->title('Banner excluído')
-                            ->success()
-                            ->send();
+                        Notification::make()->title('Banner excluído')->success()->send();
                     }),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    BulkAction::make('delete_selected')
-                        ->label('Excluir selecionados')
-                        ->icon('heroicon-o-trash')
-                        ->color('danger')
-                        ->requiresConfirmation()
-                        ->modalHeading('Excluir banners selecionados?')
-                        ->modalDescription('Remove somente os registros selecionados. Arquivos físicos não serão apagados automaticamente.')
-                        ->modalSubmitActionLabel('Sim, excluir selecionados')
-                        ->action(function (Collection $records): void {
-                            $count = $records->count();
-
-                            $records->each(function (Banner $record): void {
-                                $record->delete();
-                            });
-
-                            Notification::make()
-                                ->title('Banners excluídos')
-                                ->body($count . ' registro(s) removido(s).')
-                                ->success()
-                                ->send();
-                        })
+                    BulkAction::make('activate_selected')
+                        ->label('Ativar selecionados')
+                        ->icon('heroicon-o-eye')
+                        ->action(fn (Collection $records) => $records->each->update(['is_active' => true]))
+                        ->deselectRecordsAfterCompletion(),
+                    BulkAction::make('deactivate_selected')
+                        ->label('Desativar selecionados')
+                        ->icon('heroicon-o-eye-slash')
+                        ->action(fn (Collection $records) => $records->each->update(['is_active' => false]))
                         ->deselectRecordsAfterCompletion(),
                 ]),
             ])
             ->emptyStateHeading('Nenhum banner encontrado')
-            ->emptyStateDescription('Cadastre banners para carrossel e página inicial.');
-    }
-
-    private function bannerQuery(): Builder
-    {
-        return Banner::query();
+            ->emptyStateDescription('Cadastre banners e controle desktop/mobile direto pelo Admin.');
     }
 
     private function bannerFormSchema(bool $isEdit = false): array
     {
         return [
-            Forms\Components\Section::make('Imagem e posição')
-                ->description('Escolha onde o banner será exibido e envie uma imagem otimizada.')
+            Forms\Components\Section::make('Imagem e exibição')
+                ->description('O mesmo cadastro pode alimentar o desktop e o mobile sem alterar código.')
                 ->schema([
                     Forms\Components\Select::make('type')
                         ->label('Posição de exibição')
-                        ->options([
-                            'carousel' => 'Carrossel',
-                            'home' => 'Página Inicial',
-                        ])
+                        ->options(['carousel' => 'Carrossel', 'home' => 'Página Inicial'])
+                        ->default('home')
                         ->required()
                         ->native(false),
 
+                    Forms\Components\TextInput::make('sort_order')
+                        ->label('Ordem')
+                        ->numeric()
+                        ->minValue(0)
+                        ->default(0)
+                        ->required(),
+
+                    Forms\Components\Toggle::make('is_active')->label('Banner ativo')->default(true),
+                    Forms\Components\Toggle::make('show_desktop')->label('Exibir no desktop')->default(true),
+                    Forms\Components\Toggle::make('show_mobile')->label('Exibir no mobile')->default(true),
+
                     Forms\Components\FileUpload::make('image')
-                        ->label('Imagem do Banner')
+                        ->label('Imagem do banner')
                         ->image()
                         ->required(! $isEdit)
-                        ->helperText('Recomendado: 1200x445, JPG/PNG/WEBP/GIF até 4MB.')
-                        ->saveUploadedFileUsing(
-                            fn (TemporaryUploadedFile $file) => \Helper::upload($file)['path'] ?? null
-                        )
+                        ->helperText('Desktop: prefira 1600x520 ou proporção próxima de 3:1. Mobile: 1200x520 funciona bem.')
+                        ->saveUploadedFileUsing(fn (TemporaryUploadedFile $file) => \Helper::upload($file)['path'] ?? null)
                         ->columnSpanFull(),
                 ])
-                ->columns(2),
+                ->columns(3),
 
             Forms\Components\Section::make('Conteúdo')
                 ->schema([
                     Forms\Components\TextInput::make('link')
                         ->label('Link de destino')
-                        ->placeholder('https://seudominio.com/promocao')
-                        ->url()
+                        ->placeholder('/bonus ou https://seudominio.com/promocao')
                         ->maxLength(191)
                         ->columnSpanFull(),
 
                     Forms\Components\Textarea::make('description')
                         ->label('Descrição')
-                        ->placeholder('Descrição interna ou texto de apoio do banner')
-                        ->rows(4)
+                        ->placeholder('Texto interno para identificar a campanha no Admin')
+                        ->rows(3)
                         ->maxLength(65535)
                         ->columnSpanFull(),
                 ]),
@@ -333,25 +306,24 @@ class AdminBannersPage extends Page implements HasTable
 
         return [
             'type' => $data['type'] ?? ($record?->type ?: 'home'),
-            'description' => $data['description'] ?? null,
-            'link' => $data['link'] ?? null,
+            'description' => filled($data['description'] ?? null) ? trim((string) $data['description']) : null,
+            'link' => filled($data['link'] ?? null) ? trim((string) $data['link']) : null,
             'image' => $image ?: $record?->image,
+            'is_active' => (bool) ($data['is_active'] ?? true),
+            'sort_order' => max(0, (int) ($data['sort_order'] ?? 0)),
+            'show_desktop' => (bool) ($data['show_desktop'] ?? true),
+            'show_mobile' => (bool) ($data['show_mobile'] ?? true),
         ];
     }
 
     private function extractImagePath(mixed $image): ?string
     {
-        if (is_string($image) && filled($image)) {
-            return ltrim($image, '/');
-        }
+        if (is_string($image) && filled($image)) return ltrim($image, '/');
 
         if (is_array($image)) {
             foreach ($image as $item) {
                 $path = $this->extractImagePath($item);
-
-                if (filled($path)) {
-                    return ltrim($path, '/');
-                }
+                if (filled($path)) return ltrim($path, '/');
             }
         }
 
@@ -378,30 +350,22 @@ class AdminBannersPage extends Page implements HasTable
 
     public function imageUrl(?string $image, mixed $version = null): ?string
     {
-        if (! filled($image)) {
-            return null;
-        }
+        if (! filled($image)) return null;
 
         $image = ltrim((string) $image, '/');
-
         if (str_starts_with($image, 'http://') || str_starts_with($image, 'https://')) {
             $url = $image;
         } elseif (str_starts_with($image, 'storage/')) {
             $url = asset($image);
         } else {
-
             $url = asset('storage/' . $image);
         }
-
 
         if (filled($version)) {
             $ts = $version instanceof \DateTimeInterface
                 ? $version->getTimestamp()
                 : (is_numeric($version) ? (int) $version : strtotime((string) $version));
-
-            if ($ts) {
-                $url .= (str_contains($url, '?') ? '&' : '?') . 'v=' . $ts;
-            }
+            if ($ts) $url .= (str_contains($url, '?') ? '&' : '?') . 'v=' . $ts;
         }
 
         return $url;
