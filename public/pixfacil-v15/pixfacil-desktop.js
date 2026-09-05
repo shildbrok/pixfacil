@@ -5,7 +5,7 @@ const home=()=>location.pathname==='/'||location.pathname==='';
 let branding=null,banners=[],heroTimer=null,lastPath='';
 
 function asset(v){if(!v)return '';v=String(v);if(/^(?:https?:|data:|blob:)/i.test(v))return v;if(v.startsWith('/'))return v;if(v.startsWith('storage/'))return '/'+v;if(v.startsWith('uploads/'))return '/storage/'+v;return '/storage/'+v}
-function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#039;'}[m]))}
 function currentNav(href){const p=location.pathname;if(href==='/')return p==='/';return p.startsWith(href)}
 
 async function loadConfig(){
@@ -48,29 +48,35 @@ function heroMarkup(){
 
 function mountHero(){
   clearInterval(heroTimer);heroTimer=null;
+  document.body.classList.remove('pf-desktop-has-hero');
   document.getElementById('pf-desktop-hero-mount')?.remove();
   if(!home()||!DESKTOP()||blocked())return;
   const root=document.getElementById('ondagamesv1');if(!root)return;
   const mount=document.createElement('section');mount.id='pf-desktop-hero-mount';mount.innerHTML=heroMarkup();
   root.before(mount);
+  document.body.classList.add('pf-desktop-has-hero');
   const slides=[...mount.querySelectorAll('[data-pfd-slide]')],dots=[...mount.querySelectorAll('[data-pfd-dot]')];
   if(slides.length<2)return;
   let idx=0;
   const show=n=>{idx=(n+slides.length)%slides.length;slides.forEach((s,i)=>s.classList.toggle('active',i===idx));dots.forEach((d,i)=>d.classList.toggle('active',i===idx))};
-  dots.forEach((d,i)=>d.addEventListener('click',()=>{show(i);restart()}));
   const restart=()=>{clearInterval(heroTimer);heroTimer=setInterval(()=>show(idx+1),6500)};
+  dots.forEach((d,i)=>d.addEventListener('click',()=>{show(i);restart()}));
   restart();
 }
 
 function unmount(){
-  document.body.classList.remove('pf-desktop-owned');
+  document.body.classList.remove('pf-desktop-owned','pf-desktop-has-hero');
   document.getElementById('pf-desktop-chrome')?.remove();
   document.getElementById('pf-desktop-hero-mount')?.remove();
   clearInterval(heroTimer);heroTimer=null;
 }
 
 function watchRoute(){
-  const tick=()=>{if(location.pathname!==lastPath){lastPath=location.pathname;mountChrome()}else if(DESKTOP()&&!blocked()){markLegacyHeader()}};
+  const tick=()=>{
+    if(location.pathname!==lastPath){lastPath=location.pathname;mountChrome()}
+    else if(DESKTOP()&&!blocked()){markLegacyHeader()}
+    else if(!DESKTOP()){unmount()}
+  };
   setInterval(tick,450);
   addEventListener('popstate',tick);
   addEventListener('resize',tick);
