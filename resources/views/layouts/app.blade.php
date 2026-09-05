@@ -21,7 +21,7 @@
 
     <link rel="shortcut icon" href="{{ $favicon }}" type="image/x-icon">
     <link rel="apple-touch-icon" href="{{ $favicon }}" type="image/x-icon">
-    <link rel="manifest" href="{{ asset('pixfacil-v15/manifest.webmanifest') }}?v=20260905-1815">
+    <link rel="manifest" href="{{ asset('pixfacil-v15/manifest.webmanifest') }}?v=20260905-1830">
     <meta name="theme-color" content="#050806">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -153,21 +153,21 @@
         window.PIXFACIL_V13_GAME_ROUTE = @json((bool) $gameRoute);
     </script>
 
-    <link rel="stylesheet" href="{{ asset('pixfacil-v15/pixfacil-v15.css') }}?v=20260905-1815">
+    <link rel="stylesheet" href="{{ asset('pixfacil-v15/pixfacil-v15.css') }}?v=20260905-1830">
     @if ($ownedRoute)
-        <link rel="stylesheet" href="{{ asset('pixfacil-v15/pixfacil-unified-pages.css') }}?v=20260905-1815">
+        <link rel="stylesheet" href="{{ asset('pixfacil-v15/pixfacil-unified-pages.css') }}?v=20260905-1830">
+    @endif
+    @if ($desktopShellRoute || $authRoute)
+        <link rel="stylesheet" href="{{ asset('pixfacil-v15/pixfacil-desktop.css') }}?v=20260905-1830">
+    @endif
+    <script defer src="{{ asset('pixfacil-v15/pixfacil-v15.js') }}?v=20260905-1830"></script>
+    @if ($ownedRoute)
+        <script defer src="{{ asset('pixfacil-v15/pixfacil-content-sync.js') }}?v=20260905-1830"></script>
     @endif
     @if ($desktopShellRoute)
-        <link rel="stylesheet" href="{{ asset('pixfacil-v15/pixfacil-desktop.css') }}?v=20260905-1815">
-    @endif
-    <script defer src="{{ asset('pixfacil-v15/pixfacil-v15.js') }}?v=20260905-1815"></script>
-    @if ($ownedRoute)
-        <script defer src="{{ asset('pixfacil-v15/pixfacil-content-sync.js') }}?v=20260905-1815"></script>
-    @endif
-    @if ($desktopShellRoute)
-        <script defer src="{{ asset('pixfacil-v15/pixfacil-desktop.js') }}?v=20260905-1815"></script>
-    @else
-        <script defer src="{{ asset('pixfacil-v15/pixfacil-desktop-auth-guard.js') }}?v=20260905-1815"></script>
+        <script defer src="{{ asset('pixfacil-v15/pixfacil-desktop.js') }}?v=20260905-1830"></script>
+    @elseif ($authRoute)
+        <script defer src="{{ asset('pixfacil-v15/pixfacil-desktop-auth-guard.js') }}?v=20260905-1830"></script>
     @endif
 </head>
 
