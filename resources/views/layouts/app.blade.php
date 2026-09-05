@@ -171,6 +171,7 @@
         <link rel="stylesheet" href="{{ $versionedAsset('pixfacil-v15/pixfacil-unified-pages.css') }}">
     @endif
     @if (! $excludedRoute)
+        <link rel="stylesheet" href="{{ route('pixfacil.styles') }}?v={{ $themeAssetVersion }}">
         <link rel="stylesheet" href="{{ $versionedAsset('pixfacil-v15/pixfacil-desktop.css') }}">
     @endif
     <script defer src="{{ $versionedAsset('pixfacil-v15/pixfacil-v15.js') }}"></script>
