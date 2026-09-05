@@ -54,8 +54,6 @@ class HouseGameWalletService
                 return ['round' => $existing->fresh(), 'engine_token' => $token, 'reused' => true];
             }
 
-            // Uma nova ação de jogar sempre encerra qualquer rodada anterior.
-            // O client_event_id protege apenas retries da MESMA requisição e evita débito duplo.
             HouseGameRound::query()
                 ->where('user_id', $user->id)
                 ->where('status', HouseGameRound::STATUS_OPEN)
@@ -100,8 +98,6 @@ class HouseGameWalletService
             ]);
 
             try {
-                // Usa exatamente a carteira/rollover já usada pelo cassino atual,
-                // mas sem criar Order nem tocar na lógica PlayFiver.
                 $result = WalletRolloverService::applyGameResult($wallet, $bet, 0);
                 $token = bin2hex(random_bytes(32));
 
@@ -183,7 +179,6 @@ class HouseGameWalletService
         }
 
         $round->update(['launched_at' => $round->launched_at ?: now()]);
-
         $bet = (float) $round->bet;
 
         return [
@@ -197,11 +192,9 @@ class HouseGameWalletService
         ];
     }
 
-    public function settleWin(HouseGame $game, HouseGameRound $round, float $claimed): array
+    public function settleWin(HouseGame $game, HouseGameRound $round): array
     {
-        $claimed = max(0, round($claimed, 2));
-
-        return $this->withUserLock($round->user_id, function () use ($game, $round, $claimed): array {
+        return $this->withUserLock($round->user_id, function () use ($game, $round): array {
             $round = HouseGameRound::query()->whereKey($round->id)->firstOrFail();
 
             if ($this->expireIfNeeded($round)) {
@@ -218,18 +211,47 @@ class HouseGameWalletService
                 throw new RuntimeException('A rodada terminou rápido demais para ser liquidada.');
             }
 
-            if ($claimed + 0.00001 < (float) $round->meta_amount) {
-                throw new RuntimeException('A meta da rodada ainda não foi atingida.');
+            $decision = $this->serverSettlementDecision($round);
+
+            if (! $decision['won']) {
+                $claimedOk = HouseGameRound::query()
+                    ->whereKey($round->id)
+                    ->where('status', HouseGameRound::STATUS_OPEN)
+                    ->update([
+                        'status' => HouseGameRound::STATUS_LOST,
+                        'client_claim' => 0,
+                        'payout' => 0,
+                        'settled_at' => now(),
+                        'failure_reason' => 'Resultado financeiro determinado pelo servidor.',
+                        'updated_at' => now(),
+                    ]);
+
+                if ($claimedOk !== 1) {
+                    throw new RuntimeException('Rodada já liquidada.');
+                }
+
+                $wallet = Wallet::query()
+                    ->where('user_id', $round->user_id)
+                    ->where('active', 1)
+                    ->first() ?: Wallet::query()->where('user_id', $round->user_id)->first();
+
+                return [
+                    'round' => HouseGameRound::find($round->id),
+                    'outcome' => 'lost',
+                    'payout' => 0.0,
+                    'balance' => (float) ($wallet?->total_balance ?? 0),
+                    'credit' => null,
+                ];
             }
 
-            $payout = min($claimed, (float) $round->max_payout);
+            $payout = (float) $decision['payout'];
 
             $claimedOk = HouseGameRound::query()
                 ->whereKey($round->id)
                 ->where('status', HouseGameRound::STATUS_OPEN)
                 ->update([
                     'status' => HouseGameRound::STATUS_SETTLING,
-                    'client_claim' => $claimed,
+                    'client_claim' => 0,
                     'payout' => $payout,
                     'updated_at' => now(),
                 ]);
@@ -269,6 +291,7 @@ class HouseGameWalletService
 
                 return [
                     'round' => HouseGameRound::find($round->id),
+                    'outcome' => 'won',
                     'payout' => $payout,
                     'balance' => (float) $wallet->fresh()->total_balance,
                     'credit' => $credit,
@@ -283,6 +306,32 @@ class HouseGameWalletService
                 throw $e;
             }
         });
+    }
+
+    private function serverSettlementDecision(HouseGameRound $round): array
+    {
+        $betCents = max(1, (int) round((float) $round->bet * 100));
+        $maxCents = max(1, (int) round((float) $round->max_payout * 100));
+        $metaCents = max(1, (int) round((float) $round->meta_amount * 100));
+        $minCents = min($metaCents, $maxCents);
+
+        $payoutCents = random_int($minCents, $maxCents);
+        $rtpPercent = (float) config('services.security.retro_server_rtp_percent', 90);
+        $rtpPercent = min(100.0, max(0.0, $rtpPercent));
+
+        if ($rtpPercent <= 0.0) {
+            return ['won' => false, 'payout' => 0.0];
+        }
+
+        $probability = min(1.0, (($rtpPercent / 100.0) * $betCents) / $payoutCents);
+        $scale = 1_000_000;
+        $threshold = (int) floor($probability * $scale);
+        $won = $threshold >= $scale || random_int(1, $scale) <= $threshold;
+
+        return [
+            'won' => $won,
+            'payout' => $won ? round($payoutCents / 100, 2) : 0.0,
+        ];
     }
 
     public function settleLoss(HouseGame $game, HouseGameRound $round): array
@@ -382,7 +431,6 @@ class HouseGameWalletService
                 try {
                     DB::selectOne('SELECT RELEASE_LOCK(?) AS released', [$key]);
                 } catch (Throwable) {
-                    // O lock também é liberado automaticamente ao fechar a conexão.
                 }
             }
         }
