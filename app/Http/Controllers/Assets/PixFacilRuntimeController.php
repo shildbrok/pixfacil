@@ -21,11 +21,12 @@ class PixFacilRuntimeController extends Controller
             abort(500, 'Não foi possível carregar o runtime do tema.');
         }
 
-        // No desktop, o mesmo renderer V15 do celular assume todas as rotas visuais.
-        // Admin e players continuam fora do ownership.
+        // O renderer V15 continua sendo a base das páginas internas em desktop.
+        // A Home desktop possui renderer próprio para reproduzir a experiência
+        // aprovada sem manter duas interfaces concorrendo na mesma tela.
         $source = str_replace(
             "if(!MOBILE()||/^\\/admin(?:\\/|$)/i.test(p)||gamePath(p))return false;",
-            "if(/^\\/admin(?:\\/|$)/i.test(p)||gamePath(p))return false;",
+            "if(/^\\/admin(?:\\/|$)/i.test(p)||gamePath(p)||(window.innerWidth>=768&&p==='/'))return false;",
             $source
         );
 
