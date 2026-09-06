@@ -124,6 +124,7 @@
             is_file(public_path('pixfacil-v15/pixfacil-v15.js')) ? filemtime(public_path('pixfacil-v15/pixfacil-v15.js')) : 0,
             is_file(public_path('pixfacil-v15/pixfacil-desktop.js')) ? filemtime(public_path('pixfacil-v15/pixfacil-desktop.js')) : 0,
             is_file(public_path('pixfacil-v15/pixfacil-desktop-home.js')) ? filemtime(public_path('pixfacil-v15/pixfacil-desktop-home.js')) : 0,
+            is_file(public_path('pixfacil-v15/pixfacil-desktop-fallbacks.js')) ? filemtime(public_path('pixfacil-v15/pixfacil-desktop-fallbacks.js')) : 0,
             is_file(public_path('pixfacil-v15/pixfacil-v15.css')) ? filemtime(public_path('pixfacil-v15/pixfacil-v15.css')) : 0,
             is_file(public_path('pixfacil-v15/pixfacil-desktop.css')) ? filemtime(public_path('pixfacil-v15/pixfacil-desktop.css')) : 0,
             is_file(public_path('pixfacil-v15/pixfacil-desktop-home.css')) ? filemtime(public_path('pixfacil-v15/pixfacil-desktop-home.css')) : 0
@@ -184,6 +185,7 @@
     @if (! $excludedRoute)
         <script defer src="{{ $versionedAsset('pixfacil-v15/pixfacil-desktop.js') }}"></script>
         <script defer src="{{ $versionedAsset('pixfacil-v15/pixfacil-desktop-home.js') }}"></script>
+        <script defer src="{{ $versionedAsset('pixfacil-v15/pixfacil-desktop-fallbacks.js') }}"></script>
     @endif
 </head>
 
