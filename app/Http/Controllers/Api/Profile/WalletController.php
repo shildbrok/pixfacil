@@ -247,6 +247,21 @@ class WalletController extends Controller
             if (! $pixKey) {
                 return response()->json(['error' => 'Chave Pix inválida.'], 400);
             }
+
+            $authoritativeCpf = preg_replace('/\D/', '', (string) ($user->cpf ?? ''));
+            if ($kycConfig->isWithdrawalKycRequired()) {
+                $approvedKyc = Verificacao::query()
+                    ->where('user_id', $userId)
+                    ->where('status', Verificacao::STATUS_APPROVED)
+                    ->orderByDesc('id')
+                    ->first();
+                $authoritativeCpf = preg_replace('/\D/', '', (string) ($approvedKyc?->cpf ?? ''));
+            }
+
+            $pixCpf = preg_replace('/\D/', '', (string) $pixKey->holder_cpf);
+            if ($authoritativeCpf === '' || $pixCpf === '' || ! hash_equals($authoritativeCpf, $pixCpf)) {
+                return response()->json(['error' => 'A chave Pix selecionada não pertence ao CPF verificado da conta.'], 422);
+            }
         }
 
         if ((bool) ($user->is_influencer ?? false)) {
@@ -274,9 +289,6 @@ class WalletController extends Controller
                     ->lockForUpdate()
                     ->firstOrFail();
 
-                // Limite por período recontado SOB o lock da carteira, que serializa
-                // as requisições do mesmo usuário. Antes a contagem era feita fora do
-                // lock: dois saques simultâneos liam count() = 0 e ambos passavam.
                 if (! empty($setting->withdrawal_limit)) {
                     $jaFeitos = Withdrawal::where('user_id', $userId);
 
@@ -285,11 +297,6 @@ class WalletController extends Controller
                             $jaFeitos->whereDate('created_at', now()->toDateString());
                             break;
                         case 'weekly':
-                            // Segunda e domingo EXPLÍCITOS. Sem isso o Carbon 3
-                            // lê o primeiro dia da semana do locale, e em pt_BR
-                            // ele é domingo — no Carbon 2 era sempre segunda.
-                            // A janela do limite andaria um dia e o jogador que
-                            // já bateu o teto ganharia cota extra no domingo.
                             $jaFeitos->whereBetween('created_at', [
                                 now()->startOfWeek(Carbon::MONDAY),
                                 now()->endOfWeek(Carbon::SUNDAY),
@@ -355,25 +362,28 @@ class WalletController extends Controller
 
         $autoApproved = false;
 
-        $approvedTodayUser = Withdrawal::where('user_id', $userId)
-            ->whereIn('status', [1, 9])
-            ->whereDate('created_at', now()->toDateString())
-            ->count();
-
         if (
             ! empty($setting->withdrawal_auto_approve)
             && (float) $setting->withdrawal_auto_approve === 1.0
             && $amount <= (float) $setting->withdrawal_auto_approve_max
-            && $approvedTodayUser < 3
         ) {
             try {
+                $autoApproved = $this->withAutoApprovalLock($userId, function () use ($userId, $withdrawal, $request): bool {
+                    $approvedTodayUser = Withdrawal::query()
+                        ->where('user_id', $userId)
+                        ->whereIn('status', [1, 9])
+                        ->whereDate('created_at', now()->toDateString())
+                        ->count();
 
-                // Gateway ativo de saque (settings.saque).
-                $resultGateway = \App\Services\Gateways\GatewayManager::forWithdrawal()
-                    ->cashOut($withdrawal->id, $request->type);
+                    if ($approvedTodayUser >= 3) {
+                        return false;
+                    }
 
-                if ($resultGateway === true) {
-                    $autoApproved = true;
+                    return \App\Services\Gateways\GatewayManager::forWithdrawal()
+                        ->cashOut($withdrawal->id, $request->type) === true;
+                });
+
+                if ($autoApproved) {
                     $withdrawal->refresh();
                 }
             } catch (\Throwable $e) {
@@ -446,6 +456,33 @@ class WalletController extends Controller
             'influencer_demo' => true,
             'message' => 'Saque demonstrativo aprovado automaticamente.',
         ], 200);
+    }
+
+    private function withAutoApprovalLock(int $userId, callable $callback): bool
+    {
+        if (DB::connection()->getDriverName() !== 'mysql') {
+            return (bool) $callback();
+        }
+
+        $key = 'withdrawal_autoapprove_' . $userId;
+        $acquired = false;
+
+        try {
+            $row = DB::selectOne('SELECT GET_LOCK(?, 5) AS acquired', [$key]);
+            $acquired = (int) ($row->acquired ?? 0) === 1;
+            if (! $acquired) {
+                return false;
+            }
+
+            return (bool) $callback();
+        } finally {
+            if ($acquired) {
+                try {
+                    DB::selectOne('SELECT RELEASE_LOCK(?) AS released', [$key]);
+                } catch (\Throwable) {
+                }
+            }
+        }
     }
 
     private function normalizePixKeyForWithdrawal(string $type, string $value): string

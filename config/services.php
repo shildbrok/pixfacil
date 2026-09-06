@@ -49,6 +49,9 @@ return [
 
 
         'admin_password_confirm_minutes' => env('ADMIN_PASSWORD_CONFIRM_MINUTES', 15),
+
+        // RTP financeiro máximo usado na decisão server-authoritative dos jogos retrô.
+        'retro_server_rtp_percent' => env('RETRO_SERVER_RTP_PERCENT', 90),
     ],
 
 ];

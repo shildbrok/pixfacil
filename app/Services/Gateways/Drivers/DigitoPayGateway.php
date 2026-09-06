@@ -9,6 +9,7 @@ use App\Models\Transaction;
 use App\Models\Wallet;
 use App\Models\Withdrawal;
 use App\Services\Gateways\Contracts\PaymentGateway;
+use App\Services\Gateways\WithdrawalDispatchClaim;
 use App\Services\Gateways\DigitoPay\DigitoPayClient;
 use App\Support\GatewayLog;
 use Illuminate\Http\JsonResponse;
@@ -194,7 +195,7 @@ class DigitoPayGateway implements PaymentGateway
     /**
      * Envia o PIX de saque.
      *
-     * RO-8: person.cpf tem que ser o CPF do TITULAR da chave; se divergir, o
+     * RO-8: person.cpf tem que SER o CPF do TITULAR da chave; se divergir, o
      * DigitoPay cancela a transação.
      * RO-6: reenvio reutiliza a MESMA idempotencyKey (guardada em payment_id),
      * senão um reprocesso após timeout pagaria duas vezes.
@@ -206,7 +207,7 @@ class DigitoPayGateway implements PaymentGateway
                 return false;
             }
 
-            $w = Withdrawal::where('id', $withdrawalId)->where('status', 0)->first();
+            $w = WithdrawalDispatchClaim::claim($withdrawalId, $this->key(), fn (Withdrawal $row) => (string) Str::uuid());
             if (! $w) {
                 return false;
             }
@@ -227,12 +228,7 @@ class DigitoPayGateway implements PaymentGateway
 
             // Chave estável por saque: reusa a de uma tentativa anterior. Gerar
             // uma nova aqui faria o provedor tratar como saque novo -> pagamento duplo.
-            $idempotencyKey = $w->payment_id ?: (string) Str::uuid();
-
-            $w->status     = 9;              // em processamento
-            $w->payment_id = $idempotencyKey;
-            $w->gateway    = $this->key();
-            $w->save();
+            $idempotencyKey = (string) $w->payment_id;
 
             $res = $this->client->withdraw([
                 'paymentOptions' => ['PIX'],
@@ -255,8 +251,7 @@ class DigitoPayGateway implements PaymentGateway
 
                 // Volta para pendente PRESERVANDO o payment_id: zerar aqui faria
                 // o reprocesso gerar outra chave e arriscar pagamento duplo.
-                $w->status = 0;
-                $w->save();
+                WithdrawalDispatchClaim::releaseToPending($w->id);
 
                 return false;
             }
