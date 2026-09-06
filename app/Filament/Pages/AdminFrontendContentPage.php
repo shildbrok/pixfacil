@@ -38,6 +38,14 @@ class AdminFrontendContentPage extends Page implements HasForms
     {
         return [
             'brand_tagline' => 'Sua diversão em outro nível',
+            'home_vip_kicker' => 'SEJA VIP',
+            'home_vip_title' => 'Mais benefícios',
+            'home_vip_subtitle' => 'Mais recompensas',
+            'home_pix_kicker' => 'PIX RÁPIDO',
+            'home_pix_title' => 'Seguro',
+            'home_pix_subtitle' => 'Rápido e simples',
+            'home_promotions_title' => 'Promoções',
+            'home_live_title' => 'Ganhos ao vivo',
             'login_badge' => 'Área segura',
             'login_title' => 'Entre com sua conta',
             'login_subtitle' => 'Acesse sua conta e continue jogando seus jogos favoritos.',
@@ -97,14 +105,39 @@ class AdminFrontendContentPage extends Page implements HasForms
                 Forms\Components\Tabs::make('Conteúdo')
                     ->persistTabInQueryString()
                     ->tabs([
-                        Forms\Components\Tabs\Tab::make('Marca e acesso')
-                            ->icon('heroicon-o-sparkles')
+                        Forms\Components\Tabs\Tab::make('Home')
+                            ->icon('heroicon-o-home')
                             ->schema([
-                                Forms\Components\Section::make('Identidade textual')
-                                    ->description('Esses textos aparecem no site e podem ser alterados sem editar código.')
+                                Forms\Components\Section::make('Identidade')
+                                    ->description('Logo e banners são gerenciados em Tema e Aparência. Aqui você controla os textos da Home.')
                                     ->schema([
                                         Forms\Components\TextInput::make('frontend_content.brand_tagline')->label('Slogan da plataforma')->maxLength(140)->columnSpanFull(),
                                     ]),
+                                Forms\Components\Section::make('Card VIP lateral')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('frontend_content.home_vip_kicker')->label('Selo')->maxLength(80),
+                                        Forms\Components\TextInput::make('frontend_content.home_vip_title')->label('Título')->maxLength(140),
+                                        Forms\Components\TextInput::make('frontend_content.home_vip_subtitle')->label('Subtítulo')->maxLength(180)->columnSpanFull(),
+                                    ])->columns(2),
+                                Forms\Components\Section::make('Card PIX lateral')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('frontend_content.home_pix_kicker')->label('Selo')->maxLength(80),
+                                        Forms\Components\TextInput::make('frontend_content.home_pix_title')->label('Título')->maxLength(140),
+                                        Forms\Components\TextInput::make('frontend_content.home_pix_subtitle')->label('Subtítulo')->maxLength(180)->columnSpanFull(),
+                                    ])->columns(2),
+                                Forms\Components\Section::make('Blocos laterais')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('frontend_content.home_promotions_title')->label('Título de Promoções')->maxLength(100),
+                                        Forms\Components\TextInput::make('frontend_content.home_live_title')->label('Título de Ganhos ao vivo')->maxLength(100),
+                                    ])->columns(2),
+                                Forms\Components\Placeholder::make('home_sections_note')
+                                    ->label('Seções de jogos')
+                                    ->content('Os títulos, subtítulos, ordem e jogos das seções da Home continuam sendo controlados no módulo de Home Sections do Admin.'),
+                            ]),
+
+                        Forms\Components\Tabs\Tab::make('Marca e acesso')
+                            ->icon('heroicon-o-sparkles')
+                            ->schema([
                                 Forms\Components\Section::make('Login')
                                     ->schema([
                                         Forms\Components\TextInput::make('frontend_content.login_badge')->label('Selo / badge')->maxLength(80),
