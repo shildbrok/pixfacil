@@ -37,6 +37,84 @@ function updateLogo(root){
     }
   }
 }
+function ensureArtworkImage(container,src,href,alt,className){
+  if(!container||!src)return;
+  let link=container.querySelector(`:scope > .${className}`);
+  if(!link){
+    link=document.createElement('a');
+    link.className=className;
+    link.href=href;
+    const img=document.createElement('img');
+    img.alt=alt;
+    img.loading='lazy';
+    link.appendChild(img);
+    container.prepend(link);
+  }
+  const img=link.querySelector('img');
+  if(img&&img.getAttribute('src')!==src){
+    img.classList.remove('pf12-img-failed');
+    img.dataset.pfArtFailed='';
+    img.onerror=()=>{if(img.dataset.pfArtFailed==='1')return;img.dataset.pfArtFailed='1';link.classList.add('is-failed')};
+    img.onload=()=>link.classList.remove('is-failed');
+    img.src=src;
+  }
+}
+function applyHomeArtwork(){
+  if(!branding||window.innerWidth<768)return;
+  const content=branding.content||{};
+  const heroSrc=asset(content.home_hero_image||'/pixfacil-v15/art/home-welcome.webp');
+  const vipSrc=asset(content.home_vip_image||'/pixfacil-v15/art/home-vip.webp');
+  const pixSrc=asset(content.home_pix_image||'/pixfacil-v15/art/home-pix.webp');
+  const promoSrc=asset(content.home_promotions_image||'/pixfacil-v15/art/home-promotions.webp');
+
+  if(path()==='/'){
+    const hero=document.querySelector('#pfdh-hero');
+    const heroImg=hero?.querySelector('.pfdh-hero-slide img');
+    if(heroImg){
+      const current=heroImg.getAttribute('src')||'';
+      const isThemeFallback=current.includes('/pixfacil-v15/hero.webp')||heroImg.classList.contains('pf12-img-failed');
+      if(isThemeFallback&&heroSrc&&current!==heroSrc){
+        heroImg.classList.remove('pf12-img-failed');
+        heroImg.src=heroSrc;
+        heroImg.alt='Banner principal';
+      }
+    }
+
+    const vip=document.querySelector('.pfdh-feature-vip');
+    if(vip&&vipSrc){
+      vip.classList.add('has-art');
+      let img=vip.querySelector(':scope > img.pfdh-feature-art');
+      if(!img){img=document.createElement('img');img.className='pfdh-feature-art';img.alt='Clube VIP';vip.prepend(img)}
+      if(img.getAttribute('src')!==vipSrc)img.src=vipSrc;
+      img.onerror=()=>vip.classList.remove('has-art');
+      img.onload=()=>vip.classList.add('has-art');
+    }
+
+    const pix=document.querySelector('.pfdh-feature-pix');
+    if(pix&&pixSrc){
+      pix.classList.add('has-art');
+      let img=pix.querySelector(':scope > img.pfdh-feature-art');
+      if(!img){img=document.createElement('img');img.className='pfdh-feature-art';img.alt='Depósito via PIX';pix.prepend(img)}
+      if(img.getAttribute('src')!==pixSrc)img.src=pixSrc;
+      img.onerror=()=>pix.classList.remove('has-art');
+      img.onload=()=>pix.classList.add('has-art');
+    }
+
+    const promos=document.querySelector('.pfdh-promos');
+    ensureArtworkImage(promos,promoSrc,'/promocoes','Promoções','pfdh-promotions-art');
+  }
+
+  if(/^\/promocoes(?:\/|$)/i.test(path())){
+    for(const card of document.querySelectorAll('.pf8-promo')){
+      const img=card.querySelector(':scope > img');
+      if(img&&img.classList.contains('pf12-img-failed')&&promoSrc&&img.dataset.pfAdminFallback!=='1'){
+        img.dataset.pfAdminFallback='1';
+        img.classList.remove('pf12-img-failed');
+        img.src=promoSrc;
+      }
+    }
+  }
+}
 function updatePage(){
   if(!owned()||!branding)return;
   const k=key(),content=branding.content||{},body=document.body;
@@ -60,6 +138,7 @@ function updatePage(){
   for(const el of document.querySelectorAll('[data-pf-software-name]'))setText(el,branding.software_name);
   for(const el of document.querySelectorAll('[data-pf-brand-tagline]'))setText(el,content.brand_tagline);
   for(const el of document.querySelectorAll('[data-pf-footer-text]'))setText(el,content.footer_text);
+  applyHomeArtwork();
 }
 async function hydrateLiveWins(force=false){
   if(path()!=='/'||window.innerWidth<768)return;
@@ -80,14 +159,14 @@ async function hydrateLiveWins(force=false){
   }catch(_){}finally{winsLoading=false}
 }
 async function load(){
-  try{const r=await fetch('/branding/data',{credentials:'same-origin',headers:{Accept:'application/json'}});if(r.ok)branding=await r.json()}catch(_){}
+  try{const r=await fetch('/branding/data',{credentials:'same-origin',headers:{Accept:'application/json'},cache:'no-store'});if(r.ok)branding=await r.json()}catch(_){}
   updatePage();
   hydrateLiveWins(true);
 }
 function watch(){
   const obs=new MutationObserver(()=>{updatePage();hydrateLiveWins()});
   obs.observe(document.body,{childList:true,subtree:true});
-  setInterval(()=>{if(location.href!==last){last=location.href;updatePage();hydrateLiveWins(true)}else hydrateLiveWins()},1000);
+  setInterval(()=>{if(location.href!==last){last=location.href;updatePage();hydrateLiveWins(true)}else{applyHomeArtwork();hydrateLiveWins()}},1000);
   addEventListener('popstate',()=>{updatePage();hydrateLiveWins(true)});
 }
 function boot(){if(!owned())return;last=location.href;load().then(watch)}
