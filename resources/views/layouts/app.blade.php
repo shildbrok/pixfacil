@@ -125,8 +125,6 @@
             $mobileBannerPath = null;
         }
 
-        // Hero só existe quando há banner real no Admin (ou legado explícito no banco).
-        // Não usamos mais hero.webp como conteúdo visual, pois gerava o retângulo vazio.
         $pixfacilThemeBanner = $resolveOptionalAsset(
             $mobileBannerPath ?: data_get($setting, 'pixfacil_mobile_banner')
         );
@@ -137,7 +135,9 @@
             is_file(public_path('pixfacil-v15/pixfacil-v15.css')) ? filemtime(public_path('pixfacil-v15/pixfacil-v15.css')) : 0,
             is_file(public_path('pixfacil-v15/pixfacil-desktop.css')) ? filemtime(public_path('pixfacil-v15/pixfacil-desktop.css')) : 0,
             is_file(public_path('pixfacil-v15/pixfacil-desktop-home.css')) ? filemtime(public_path('pixfacil-v15/pixfacil-desktop-home.css')) : 0,
-            is_file(public_path('pixfacil-v15/pixfacil-desktop-internal.css')) ? filemtime(public_path('pixfacil-v15/pixfacil-desktop-internal.css')) : 0
+            is_file(public_path('pixfacil-v15/pixfacil-desktop-internal.css')) ? filemtime(public_path('pixfacil-v15/pixfacil-desktop-internal.css')) : 0,
+            is_file(public_path('pixfacil-v15/pixfacil-content-sync.js')) ? filemtime(public_path('pixfacil-v15/pixfacil-content-sync.js')) : 0,
+            is_file(public_path('pixfacil-v15/pixfacil-home-variety.js')) ? filemtime(public_path('pixfacil-v15/pixfacil-home-variety.js')) : 0
         );
 
         $pixfacilMobileConfig = [
@@ -192,6 +192,7 @@
     <script defer src="{{ $versionedAsset('pixfacil-v15/pixfacil-v15.js') }}"></script>
     @if ($ownedRoute)
         <script defer src="{{ $versionedAsset('pixfacil-v15/pixfacil-content-sync.js') }}"></script>
+        <script defer src="{{ $versionedAsset('pixfacil-v15/pixfacil-home-variety.js') }}"></script>
     @endif
     @if (! $excludedRoute)
         <script defer src="{{ $versionedAsset('pixfacil-v15/pixfacil-desktop.js') }}"></script>
