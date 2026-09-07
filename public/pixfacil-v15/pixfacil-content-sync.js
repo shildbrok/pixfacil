@@ -1,7 +1,7 @@
 (()=>{'use strict';
 const owned=()=>document.body?.classList.contains('pf15-owned-server');
 const path=()=>location.pathname.replace(/\/+$/,'')||'/';
-let branding=null,last='',lastWinsAt=0,winsLoading=false;
+let branding=null,last='',lastWinsAt=0,winsLoading=false,lastMobileVarietyAt=0,mobileVarietyLoading=false;
 
 const routeMap=[
   [/^\/login$/i,'login'],
@@ -28,6 +28,7 @@ function first(root,selectors){for(const s of selectors){const el=root.querySele
 function asset(v){if(!v)return '';v=String(v);if(/^(?:https?:|data:|blob:)/i.test(v))return v;if(v.startsWith('/'))return v;v=v.replace(/^\.\//,'').replace(/^public\//,'');if(v.startsWith('storage/'))return '/'+v;if(v.startsWith('uploads/'))return '/storage/'+v;return '/storage/'+v}
 function money(v){return Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
 function relative(v){if(!v)return 'Agora';const sec=Math.max(0,Math.floor((Date.now()-new Date(v).getTime())/1000));if(sec<60)return 'Agora';const min=Math.floor(sec/60);if(min<60)return `há ${min} min`;const h=Math.floor(min/60);return `há ${h}h`}
+function slug(v){return String(v||'jogo').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'jogo'}
 function updateLogo(root){
   const logo=branding?.desktop_logo||branding?.mobile_logo;if(!logo)return;
   for(const img of root.querySelectorAll('img')){
@@ -141,6 +142,76 @@ function updatePage(){
   for(const el of document.querySelectorAll('[data-pf-footer-text]'))setText(el,content.footer_text);
   applyHomeArtwork();
 }
+function mobileSectionHref(section){
+  if(section?.type==='category'&&section.slug)return '/casino/provider/all/category/'+encodeURIComponent(section.slug);
+  if(section?.type==='new')return '/casino/provider/all/category/all?sort=new';
+  if(section?.type==='popular')return '/casino/provider/all/category/all?sort=popular';
+  return '/casino/provider/all/category/all';
+}
+function mobileGameCard(game){
+  const name=game?.game_name||game?.name||game?.game_code||'Jogo';
+  const cover=asset(game?.cover);
+  const href='/games/play/'+encodeURIComponent(game.id)+'/'+encodeURIComponent(slug(name));
+  return `<a class="pf8-game pf-mobile-variety-game" href="${href}" data-pf8-nav data-pf-game-id="${html(game.id)}"><span class="pf8-game-art">${cover?`<img src="${html(cover)}" loading="lazy" alt="">`:''}</span><span class="pf8-game-name">${html(name)}</span><span class="pf8-game-provider">${html(game?.provider||'')}</span></a>`;
+}
+function visibleMobileGameIds(root){
+  const used=new Set();
+  for(const a of root.querySelectorAll('a[href*="/games/play/"]')){
+    const match=(a.getAttribute('href')||'').match(/\/games\/play\/([^/]+)/i);
+    if(match)used.add(String(match[1]));
+  }
+  return used;
+}
+async function hydrateMobileHomeVariety(force=false){
+  if(path()!=='/'||window.innerWidth>=768||mobileVarietyLoading)return;
+  const root=document.getElementById('pixfacil-v15-app');
+  const wrap=root?.querySelector('.pf8-wrap');
+  if(!root||!wrap)return;
+
+  const existingContainer=wrap.querySelector('[data-pf-mobile-variety-root]');
+  if(existingContainer&&!force)return;
+  if(existingContainer)existingContainer.remove();
+
+  const now=Date.now();
+  if(!force&&now-lastMobileVarietyAt<12000)return;
+  mobileVarietyLoading=true;lastMobileVarietyAt=now;
+
+  try{
+    const response=await fetch('/api/home',{credentials:'same-origin',headers:{Accept:'application/json'},cache:'no-store'});
+    if(!response.ok)return;
+    const data=await response.json();
+    const sections=Array.isArray(data?.sections)?data.sections:[];
+    if(!sections.length)return;
+
+    const used=visibleMobileGameIds(root);
+    const existingTitles=new Set([...root.querySelectorAll('.pf8-sec-head h2')].map(el=>(el.textContent||'').trim().toLowerCase()));
+    const rendered=[];
+
+    for(const section of sections){
+      if(rendered.length>=4)break;
+      const title=String(section?.title||'Jogos').trim();
+      const titleKey=title.toLowerCase();
+      const candidates=(Array.isArray(section?.games)?section.games:[]).filter(game=>{
+        const id=String(game?.id??'');
+        return id&&!used.has(id);
+      }).slice(0,8);
+
+      if(candidates.length<3)continue;
+      if(existingTitles.has(titleKey)&&rendered.length>=2)continue;
+
+      candidates.forEach(game=>used.add(String(game.id)));
+      existingTitles.add(titleKey);
+      rendered.push(`<section class="pf8-section pf-mobile-variety-section" data-pf-mobile-variety="1"><div class="pf8-sec-head"><h2>${html(title)}</h2><a href="${html(mobileSectionHref(section))}" data-pf8-nav>VER TODOS →</a></div>${section?.subtitle?`<div class="pf-mobile-variety-sub">${html(section.subtitle)}</div>`:''}<div class="pf8-games pf11-games pf-mobile-variety-grid">${candidates.map(mobileGameCard).join('')}</div></section>`);
+    }
+
+    if(!rendered.length)return;
+    const container=document.createElement('div');
+    container.dataset.pfMobileVarietyRoot='1';
+    container.innerHTML=rendered.join('');
+    const liveSlot=wrap.querySelector('#pf8-live-slot');
+    liveSlot?.before(container) ?? wrap.appendChild(container);
+  }catch(_){}finally{mobileVarietyLoading=false}
+}
 async function hydrateLiveWins(force=false){
   if(path()!=='/'||window.innerWidth<768)return;
   const box=document.getElementById('pfdh-live');
@@ -163,12 +234,13 @@ async function load(){
   try{const r=await fetch('/branding/data',{credentials:'same-origin',headers:{Accept:'application/json'},cache:'no-store'});if(r.ok)branding=await r.json()}catch(_){}
   updatePage();
   hydrateLiveWins(true);
+  hydrateMobileHomeVariety(true);
 }
 function watch(){
-  const obs=new MutationObserver(()=>{updatePage();hydrateLiveWins()});
+  const obs=new MutationObserver(()=>{updatePage();hydrateLiveWins();hydrateMobileHomeVariety()});
   obs.observe(document.body,{childList:true,subtree:true});
-  setInterval(()=>{if(location.href!==last){last=location.href;updatePage();hydrateLiveWins(true)}else{applyHomeArtwork();hydrateLiveWins()}},1000);
-  addEventListener('popstate',()=>{updatePage();hydrateLiveWins(true)});
+  setInterval(()=>{if(location.href!==last){last=location.href;updatePage();hydrateLiveWins(true);hydrateMobileHomeVariety(true)}else{applyHomeArtwork();hydrateLiveWins();hydrateMobileHomeVariety()}},1000);
+  addEventListener('popstate',()=>{updatePage();hydrateLiveWins(true);hydrateMobileHomeVariety(true)});
 }
 function boot(){if(!owned())return;last=location.href;load().then(watch)}
 document.readyState==='loading'?document.addEventListener('DOMContentLoaded',boot):boot();
