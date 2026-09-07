@@ -11,13 +11,11 @@
   .pfdh-hero-fallback{height:100%;display:flex;flex-direction:column;justify-content:center;padding:34px 40px}.pfdh-hero-fallback small{color:#41f767;font-weight:850;letter-spacing:.08em}.pfdh-hero-fallback strong{margin-top:6px;font-size:34px;line-height:1;font-weight:900;max-width:520px}.pfdh-hero-fallback span{margin-top:9px;color:#a9b7ae;font-size:13px}
   .pfdh-hero-prev,.pfdh-hero-next{position:absolute;z-index:5;top:50%;transform:translateY(-50%);width:38px;height:38px;border:1px solid rgba(78,255,117,.45);border-radius:50%;background:rgba(0,8,3,.72);color:#fff;font-size:27px;line-height:1}.pfdh-hero-prev{left:10px}.pfdh-hero-next{right:10px}
 
-  /* A busca principal já existe no header desktop. A segunda busca criava peso e repetição. */
   #pfd-home .pfdh-search{display:none!important}
   .pfdh-chips{display:grid;grid-template-columns:1.22fr repeat(6,1fr);gap:9px;margin-top:12px}.pfdh-chips a{height:48px;display:flex;align-items:center;justify-content:center;gap:9px;border:1px solid #285038;border-radius:13px;background:linear-gradient(180deg,#07110a,#040805);color:#eef6f0;text-decoration:none;font-size:11px;font-weight:780;white-space:nowrap}.pfdh-chips a svg{width:18px;height:18px}.pfdh-chips a.active{border-color:#4bf568;background:linear-gradient(145deg,#51f36b,#1ddf4a);color:#021006;box-shadow:0 8px 18px rgba(37,225,79,.12)}
 
-  .pfdh-section{margin-top:17px}.pfdh-section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}.pfdh-section-head h2{margin:0;color:#eefcf2;font-size:16px;font-weight:850;letter-spacing:-.2px}.pfdh-section-head a{color:#3bf25d;font-size:10px;text-decoration:none;font-weight:850}
+  .pfdh-section{margin-top:19px}.pfdh-section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px}.pfdh-section-head h2{margin:0;color:#eefcf2;font-size:17px;font-weight:850;letter-spacing:-.2px}.pfdh-section-head a{color:#3bf25d;font-size:10px;text-decoration:none;font-weight:850}
 
-  /* Operadoras: o nome precisa ser legível mesmo quando o PNG do provedor tem muito padding transparente. */
   .pfdh-providers{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:9px}
   .pfdh-provider{height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:7px 8px;border:1px solid #235d35;border-radius:11px;background:linear-gradient(180deg,#08110b,#040805);color:#fff;text-decoration:none;overflow:hidden;transition:.18s ease}
   .pfdh-provider:hover{transform:translateY(-2px);border-color:#39d95d;background:linear-gradient(180deg,#0a160d,#050a07)}
@@ -26,23 +24,29 @@
   .pfdh-provider b{font-size:19px;color:#5df878}
   .pfdh-provider small{width:100%;min-height:20px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;text-align:center;white-space:normal;line-height:1.05;font-size:9px;font-weight:760;color:#dce7df}
 
-  .pfdh-games{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}.pfdh-game{color:#fff;text-decoration:none;min-width:0}.pfdh-game-art{position:relative;display:block;overflow:hidden;aspect-ratio:1.72/1;border:1px solid #285f38;border-radius:10px;background:#07100a;transition:.2s ease}.pfdh-game-art>b{display:none!important}.pfdh-game:hover .pfdh-game-art{transform:translateY(-2px);border-color:#3fe965;box-shadow:0 8px 24px rgba(0,255,90,.08)}.pfdh-game-art img{display:block;width:100%;height:100%;object-fit:cover}.pfdh-game>strong{display:block;margin-top:6px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pfdh-game>small{display:block;margin-top:2px;font-size:9px;color:#87958c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* Jogos maiores: 5 por linha no desktop, com imagem e textos mais legíveis. */
+  .pfdh-games{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px 12px}
+  .pfdh-game{color:#fff;text-decoration:none;min-width:0}
+  .pfdh-game-art{position:relative;display:block;overflow:hidden;aspect-ratio:1.62/1;border:1px solid #285f38;border-radius:13px;background:#07100a;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
+  .pfdh-game-art>b{display:none!important}
+  .pfdh-game:hover .pfdh-game-art{transform:translateY(-3px);border-color:#3fe965;box-shadow:0 12px 28px rgba(0,255,90,.10)}
+  .pfdh-game-art img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .22s ease}
+  .pfdh-game:hover .pfdh-game-art img{transform:scale(1.035)}
+  .pfdh-game>strong{display:block;margin-top:8px;font-size:13px;line-height:1.15;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pfdh-game>small{display:block;margin-top:3px;font-size:10px;line-height:1.2;color:#91a097;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
   .pfdh-live,.pfdh-promos,.pfdh-feature,.pfdh-rail-banner{border:1px solid #24733b;border-radius:14px;background:linear-gradient(180deg,#07120b,#040805);overflow:hidden}.pfdh-rail-head{height:42px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;border-bottom:1px solid rgba(57,242,92,.13)}.pfdh-rail-head b{font-size:13px}.pfdh-rail-head a{color:#44f265;font-size:9px;text-decoration:none;font-weight:800}.pfdh-live-empty{padding:16px 12px;color:#8e9a92;font-size:11px;line-height:1.5}.pfdh-live-row{display:grid;grid-template-columns:46px minmax(0,1fr) auto;align-items:center;gap:9px;min-height:68px;padding:7px 10px;border-bottom:1px solid rgba(57,242,92,.1)}.pfdh-live-row img{width:46px;height:46px;border-radius:9px;object-fit:cover}.pfdh-live-row strong{display:block;font-size:11px}.pfdh-live-row small{display:block;margin-top:3px;color:#9aa69f;font-size:9px}.pfdh-live-row small b{color:#30f257}.pfdh-live-row em{font-style:normal;color:#79847e;font-size:9px}
   .pfdh-rail-banner{display:block;aspect-ratio:2.05/1}.pfdh-rail-banner img{display:block;width:100%;height:100%;object-fit:cover}
   .pfdh-feature{min-height:112px;display:flex;align-items:center;justify-content:space-between;padding:15px 14px;text-decoration:none;color:#fff;background:radial-gradient(circle at 86% 50%,rgba(44,255,104,.15),transparent 34%),linear-gradient(180deg,#07120b,#040805)}.pfdh-feature span{display:flex;flex-direction:column}.pfdh-feature small{color:#49f36b;font-size:10px;font-weight:900}.pfdh-feature strong{margin-top:5px;font-size:16px}.pfdh-feature b{margin-top:3px;font-size:12px;color:#d4ddd7}.pfdh-feature>svg{width:52px;height:52px;color:#d8ffe1;opacity:.95}
 
-  /* Artes antigas do pacote não podem esconder o card. Arte enviada pelo Admin continua funcionando. */
   .pfdh-feature.has-art:has(>img.pfdh-feature-art[src*="/pixfacil-v15/art/"]){display:flex!important;aspect-ratio:auto!important;min-height:112px!important;padding:15px 14px!important;background:radial-gradient(circle at 86% 50%,rgba(44,255,104,.15),transparent 34%),linear-gradient(180deg,#07120b,#040805)!important}
   .pfdh-feature.has-art:has(>img.pfdh-feature-art[src*="/pixfacil-v15/art/"])>img.pfdh-feature-art{display:none!important}
   .pfdh-feature.has-art:has(>img.pfdh-feature-art[src*="/pixfacil-v15/art/"])>:not(img){visibility:visible!important}
 
   .pfdh-promos>a{min-height:56px;display:grid;grid-template-columns:40px minmax(0,1fr);align-items:center;gap:9px;padding:7px 10px;border-bottom:1px solid rgba(57,242,92,.1);color:#fff;text-decoration:none}.pfdh-promos>a>svg{width:24px;height:24px;color:#47f46a}.pfdh-promos strong{display:block;font-size:11px}.pfdh-promos small{display:block;margin-top:2px;color:#8f9c94;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .pfdh-promo-art{width:40px;height:40px;display:block;overflow:hidden;border-radius:9px;background:#0a130d}.pfdh-promo-art img{display:block;width:100%;height:100%;object-fit:cover}
-  /* O banner estático de promoções era o responsável pelo bloco pixelado. Custom do Admin continua permitido. */
   .pfdh-promotions-art:has(img[src*="/pixfacil-v15/art/"]){display:none!important}
 
-  /* Se não há banner válido cadastrado no Admin, não mantém retângulo vazio. */
   #pfd-home .pfdh-hero:has(img[src*="/pixfacil-v15/hero.webp"]),
   #pfd-home .pfdh-hero:has(img[src*="/pixfacil-v15/art/home-welcome.webp"]),
   #pfd-home .pfdh-hero:has(img.pf12-img-failed){display:none!important}
@@ -51,12 +55,10 @@
   #pfd-home .pfdh-hero:has(img[src*="/pixfacil-v15/art/home-welcome.webp"]) ~ .pfdh-chips{margin-top:0}
 
   .pfdh-loading{height:calc(100vh - 74px);display:grid;place-items:center}.pfdh-loading:after{content:"";width:42px;height:42px;border:2px solid #173b23;border-top-color:#40f262;border-radius:50%;animation:pfdhSpin .75s linear infinite}@keyframes pfdhSpin{to{transform:rotate(360deg)}}
-  @media(max-width:1280px){#pfd-home{margin-left:196px}.pfdh-layout{width:calc(100% - 24px);grid-template-columns:minmax(0,1fr) 264px}.pfdh-games{grid-template-columns:repeat(5,minmax(0,1fr))}.pfdh-providers{grid-template-columns:repeat(6,minmax(0,1fr))}.pfdh-chips{grid-template-columns:repeat(4,minmax(0,1fr))}}
-  @media(max-width:1050px){#pfd-home{margin-left:176px}.pfdh-layout{grid-template-columns:1fr}.pfdh-rail{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.pfdh-games{grid-template-columns:repeat(4,minmax(0,1fr))}.pfdh-hero{height:220px}}
+  @media(max-width:1280px){#pfd-home{margin-left:196px}.pfdh-layout{width:calc(100% - 24px);grid-template-columns:minmax(0,1fr) 264px}.pfdh-games{grid-template-columns:repeat(4,minmax(0,1fr));gap:13px 11px}.pfdh-providers{grid-template-columns:repeat(6,minmax(0,1fr))}.pfdh-chips{grid-template-columns:repeat(4,minmax(0,1fr))}}
+  @media(max-width:1050px){#pfd-home{margin-left:176px}.pfdh-layout{grid-template-columns:1fr}.pfdh-rail{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.pfdh-games{grid-template-columns:repeat(3,minmax(0,1fr))}.pfdh-hero{height:220px}}
 }
 
-/* Mobile: banner principal só ocupa espaço quando existe uma imagem real cadastrada.
-   O hero.webp é apenas fallback antigo e não deve gerar um retângulo vazio. */
 @media(max-width:767px){
   body.pf8-owned .pf8-hero:has(>img[src*="/pixfacil-v15/hero.webp"]),
   body.pf8-owned .pf8-hero:has(>img[src*="/pixfacil-v15/art/home-welcome.webp"]),
