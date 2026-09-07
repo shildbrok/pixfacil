@@ -7,33 +7,29 @@ use App\Models\Game;
 use App\Models\HomeSection;
 use App\Models\Order;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Endpoint ENXUTO da home: devolve as seções ativas (dinâmicas, geridas no admin),
- * cada uma com no máximo N jogos e SÓ os campos de exibição (id, nome, capa, code,
- * distribution, provedor). Nada de views, datas internas, provider_id, original, etc.
- *
- * Substitui o /api/games/all pesado (148KB) na home. Só retorna jogos play_fiver.
+ * Endpoint enxuto da Home. As seções são administráveis pelo painel e o backend
+ * também evita que a vitrine fique repetindo os mesmos jogos/provedores.
  */
 class HomeController extends Controller
 {
-    /** Campos MÍNIMOS que o front precisa por jogo. */
     private function mapGame(Game $g): array
     {
         return [
-            'id'        => $g->id,
+            'id' => $g->id,
             'game_name' => $g->game_name,
             'game_code' => $g->game_code,
-            'cover'     => $g->cover,
+            'cover' => $g->cover,
             'distribution' => $g->distribution,
-            'provider'  => optional($g->provider)->name,
-            'rtp'       => $g->rtp !== null ? (int) $g->rtp : null,
+            'provider' => optional($g->provider)->name,
+            'rtp' => $g->rtp !== null ? (int) $g->rtp : null,
         ];
     }
 
-    /** Query base: só jogos ativos, de home, play_fiver, com o provedor (p/ o nome). */
     private function baseQuery()
     {
         return Game::query()
@@ -41,55 +37,92 @@ class HomeController extends Controller
             ->where('show_home', 1)
             ->whereHas('provider', fn ($q) => $q->where('distribution', 'play_fiver'))
             ->with('provider:id,name,code')
-            ->select('id', 'provider_id', 'game_name', 'game_code', 'cover', 'distribution', 'views', 'rtp', 'is_featured', 'created_at');
+            ->select(
+                'id',
+                'provider_id',
+                'game_name',
+                'game_code',
+                'cover',
+                'distribution',
+                'views',
+                'rtp',
+                'is_featured',
+                'created_at'
+            );
     }
 
     public function index(): JsonResponse
     {
-        $userId = auth('api')->id(); // pode ser null (visitante)
+        $userId = auth('api')->id();
 
-        // RESILIÊNCIA: se a tabela não existir (cliente não rodou o migrate) ou não houver
-        // seções ativas, cai para seções PADRÃO calculadas na hora — a home NUNCA quebra.
         $sections = collect();
-        if (\Illuminate\Support\Facades\Schema::hasTable('home_sections')) {
+        if (Schema::hasTable('home_sections')) {
             $sections = HomeSection::query()
                 ->where('active', true)
                 ->orderBy('sort_order')
                 ->get();
         }
+
         if ($sections->isEmpty()) {
             $sections = $this->defaultSections();
         }
 
         $result = [];
+        $usedGameIds = collect();
 
         foreach ($sections as $section) {
-            $limit = max(1, (int) $section->games_limit);
-            $key = $section->id ?: $section->type; // seções padrão não têm id
+            $limit = max(1, min(24, (int) $section->games_limit));
+            $candidateLimit = min(60, max(24, $limit * 3));
+            $key = $section->id ?: $section->type;
 
-            // "recent" é por-usuário (não cacheável globalmente); as outras são cacheadas.
             if ($section->type === 'recent') {
-                $games = $userId ? $this->recentGames($userId, $limit) : collect();
+                $games = $userId
+                    ? $this->recentGames($userId, $candidateLimit)
+                    : collect();
             } else {
                 $games = Cache::remember(
-                    "home:section:{$key}:v2:{$limit}",
+                    "home:section:{$key}:v3:{$candidateLimit}",
                     now()->addMinutes(5),
-                    fn () => $this->gamesForSection($section, $limit)
+                    fn () => $this->gamesForSection($section, $candidateLimit)
                 );
             }
 
-            // Não retorna seção vazia (ex: "recentes" p/ visitante) — front nem mostra.
             if ($games->isEmpty()) {
                 continue;
             }
 
+            // Seções manuais e recentes têm intenção explícita: preservamos exatamente
+            // a seleção/ordem delas. Nas seções automáticas priorizamos variedade.
+            $isExplicitSection = in_array($section->type, ['manual', 'recent'], true);
+
+            if (! $isExplicitSection) {
+                $games = $games
+                    ->reject(fn (Game $game) => $usedGameIds->contains($game->id))
+                    ->values();
+
+                $games = $this->diversifyByProvider($games, $limit);
+            } else {
+                $games = $games->take($limit)->values();
+            }
+
+            if ($games->isEmpty()) {
+                continue;
+            }
+
+            if (! $isExplicitSection) {
+                $usedGameIds = $usedGameIds
+                    ->merge($games->pluck('id'))
+                    ->unique()
+                    ->values();
+            }
+
             $result[] = [
-                'id'    => $key,
-                'title'    => $section->title,
+                'id' => $key,
+                'title' => $section->title,
                 'subtitle' => $section->subtitle,
-                'type'     => $section->type,
-                'icon'  => $section->icon,
-                'slug'  => optional($section->category)->slug, // p/ o "VER TODOS" quando é categoria
+                'type' => $section->type,
+                'icon' => $section->icon,
+                'slug' => optional($section->category)->slug,
                 'games' => $games->map(fn ($g) => $this->mapGame($g))->values(),
             ];
         }
@@ -98,24 +131,35 @@ class HomeController extends Controller
             ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
     }
 
-    /** Seções padrão (usadas se não há tabela/seções) — a home sempre tem conteúdo. */
-    private function defaultSections()
+    private function defaultSections(): Collection
     {
         return collect([
-            new HomeSection(['title' => 'Em Destaque',     'subtitle' => 'Em destaque', 'type' => 'featured', 'games_limit' => 12, 'active' => true]),
-            new HomeSection(['title' => 'Jogos Populares', 'subtitle' => 'Mais jogados', 'type' => 'popular',  'games_limit' => 12, 'active' => true]),
-            new HomeSection(['title' => 'Lançamentos',     'subtitle' => 'Novidades', 'type' => 'new',      'games_limit' => 12, 'active' => true]),
+            new HomeSection([
+                'title' => 'Em Destaque',
+                'subtitle' => 'Seleção da casa',
+                'type' => 'featured',
+                'games_limit' => 12,
+                'active' => true,
+            ]),
+            new HomeSection([
+                'title' => 'Jogos Populares',
+                'subtitle' => 'Mais jogados',
+                'type' => 'popular',
+                'games_limit' => 12,
+                'active' => true,
+            ]),
+            new HomeSection([
+                'title' => 'Lançamentos',
+                'subtitle' => 'Novidades',
+                'type' => 'new',
+                'games_limit' => 12,
+                'active' => true,
+            ]),
         ]);
     }
 
-    /**
-     * Lista ENXUTA de provedores (só logo/nome) para a fileira de logos da home.
-     * Substitui o /api/games/all pesado que o ProvidersCarousel usava só p/ os logos.
-     */
     public function providers(): JsonResponse
     {
-        // Compatível antes e depois da migration da arte PixFácil.
-        // Isso impede /api/home/providers de cair em 500 se a coluna ainda não existir.
         $hasPixFacilCover = Schema::hasColumn('providers', 'pixfacil_home_cover');
         $cacheKey = 'home:providers:v4:' . ($hasPixFacilCover ? 'pixfacil' : 'legacy');
 
@@ -148,48 +192,109 @@ class HomeController extends Controller
         return response()->json(['providers' => $providers]);
     }
 
-    /** Resolve os jogos de uma seção conforme o tipo. */
     private function gamesForSection(HomeSection $section, int $limit)
     {
         switch ($section->type) {
             case 'featured':
-                return $this->baseQuery()->where('is_featured', 1)
-                    ->orderByDesc('views')->limit($limit)->get();
+                return $this->baseQuery()
+                    ->where('is_featured', 1)
+                    ->orderByDesc('views')
+                    ->limit($limit)
+                    ->get();
 
             case 'popular':
-                return $this->baseQuery()->orderByDesc('views')->limit($limit)->get();
+                return $this->baseQuery()
+                    ->orderByDesc('views')
+                    ->limit($limit)
+                    ->get();
 
             case 'new':
-                return $this->baseQuery()->orderByDesc('created_at')->limit($limit)->get();
+                return $this->baseQuery()
+                    ->orderByDesc('created_at')
+                    ->limit($limit)
+                    ->get();
 
             case 'category':
                 if (! $section->category_id) {
                     return collect();
                 }
+
                 return $this->baseQuery()
                     ->whereHas('categories', fn ($q) => $q->where('categories.id', $section->category_id))
-                    ->orderByDesc('views')->limit($limit)->get();
+                    ->orderByDesc('views')
+                    ->limit($limit)
+                    ->get();
 
             case 'manual':
-                // jogos escolhidos a dedo (respeita a ordem do pivot), filtrados pelo gate
                 $ids = $section->games()->pluck('games.id');
                 if ($ids->isEmpty()) {
                     return collect();
                 }
+
                 return $this->baseQuery()
                     ->whereIn('id', $ids)
                     ->orderByRaw('FIELD(id, ' . $ids->implode(',') . ')')
-                    ->limit($limit)->get();
+                    ->limit($limit)
+                    ->get();
 
             default:
                 return collect();
         }
     }
 
-    /** Jogos que o jogador logado jogou (mais recentes primeiro). */
+    /**
+     * Faz round-robin entre provedores sem destruir a relevância da query original.
+     * Ex.: ao invés de 8 jogos seguidos do mesmo provedor, intercala PG, Pragmatic,
+     * Spribe, Evolution etc. e só depois volta ao mesmo provedor.
+     */
+    private function diversifyByProvider(Collection $games, int $limit): Collection
+    {
+        if ($games->count() <= 1) {
+            return $games->take($limit)->values();
+        }
+
+        $providerOrder = [];
+        $queues = [];
+
+        foreach ($games as $game) {
+            $providerKey = (string) ($game->provider_id ?: 'unknown');
+
+            if (! array_key_exists($providerKey, $queues)) {
+                $providerOrder[] = $providerKey;
+                $queues[$providerKey] = [];
+            }
+
+            $queues[$providerKey][] = $game;
+        }
+
+        $result = collect();
+
+        while ($result->count() < $limit) {
+            $added = false;
+
+            foreach ($providerOrder as $providerKey) {
+                if (empty($queues[$providerKey])) {
+                    continue;
+                }
+
+                $result->push(array_shift($queues[$providerKey]));
+                $added = true;
+
+                if ($result->count() >= $limit) {
+                    break;
+                }
+            }
+
+            if (! $added) {
+                break;
+            }
+        }
+
+        return $result->values();
+    }
+
     private function recentGames(int $userId, int $limit)
     {
-        // orders.game_uuid guarda o game_code; pega os distintos mais recentes.
         $codes = Order::query()
             ->where('user_id', $userId)
             ->whereNotNull('game_uuid')
