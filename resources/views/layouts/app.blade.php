@@ -15,6 +15,16 @@
             return asset('storage/' . $path);
         };
 
+        $resolveOptionalAsset = function (?string $path) {
+            if (blank($path)) return null;
+
+            $path = ltrim((string) $path, '/');
+            if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) return $path;
+            if (str_starts_with($path, 'storage/')) return asset($path);
+            if (str_starts_with($path, 'uploads/')) return asset('storage/' . $path);
+            return asset('storage/' . $path);
+        };
+
         $versionedAsset = static function (string $relative): string {
             $full = public_path($relative);
             $version = is_file($full) ? filemtime($full) : time();
@@ -115,9 +125,10 @@
             $mobileBannerPath = null;
         }
 
-        $pixfacilThemeBanner = $resolveThemeAsset(
-            $mobileBannerPath ?: data_get($setting, 'pixfacil_mobile_banner'),
-            'pixfacil-v15/hero.webp'
+        // Hero só existe quando há banner real no Admin (ou legado explícito no banco).
+        // Não usamos mais hero.webp como conteúdo visual, pois gerava o retângulo vazio.
+        $pixfacilThemeBanner = $resolveOptionalAsset(
+            $mobileBannerPath ?: data_get($setting, 'pixfacil_mobile_banner')
         );
 
         $themeAssetVersion = max(
