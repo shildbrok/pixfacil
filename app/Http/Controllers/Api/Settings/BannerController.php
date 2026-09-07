@@ -7,7 +7,7 @@ use App\Models\Banner;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Schema;
 
 class BannerController extends Controller
 {
@@ -56,18 +56,60 @@ class BannerController extends Controller
 
     private function buildPayload(string $fingerprint): array
     {
-        $banners = Banner::query()
-            ->where('is_active', true)
-            ->orderBy('sort_order')
-            ->orderByDesc('updated_at')
-            ->get();
+        if (! Schema::hasTable('banners')) {
+            return $this->cacheEnvelope($fingerprint, [
+                'banners' => [],
+                'desktop' => [],
+                'mobile' => [],
+            ]);
+        }
+
+        $hasActive = Schema::hasColumn('banners', 'is_active');
+        $hasOrder = Schema::hasColumn('banners', 'sort_order');
+        $hasDesktop = Schema::hasColumn('banners', 'show_desktop');
+        $hasMobile = Schema::hasColumn('banners', 'show_mobile');
+
+        $query = Banner::query();
+
+        if ($hasActive) {
+            $query->where('is_active', true);
+        }
+
+        if ($hasOrder) {
+            $query->orderBy('sort_order');
+        }
+
+        $query->orderByDesc('updated_at');
+
+        $banners = $query->get()->map(function (Banner $banner) use ($hasActive, $hasOrder, $hasDesktop, $hasMobile): array {
+            return [
+                'id' => $banner->id,
+                'image' => $banner->image,
+                'type' => $banner->type,
+                'description' => $banner->description,
+                'link' => $banner->link,
+                'is_active' => $hasActive ? (bool) $banner->is_active : true,
+                'sort_order' => $hasOrder ? (int) $banner->sort_order : 0,
+                'show_desktop' => $hasDesktop ? (bool) $banner->show_desktop : true,
+                'show_mobile' => $hasMobile ? (bool) $banner->show_mobile : true,
+                'created_at' => $banner->created_at,
+                'updated_at' => $banner->updated_at,
+            ];
+        })->values();
 
         $payload = [
+            // Mantém compatibilidade com o frontend Vue legado, que lê data.banners.
             'banners' => $banners,
+            // V15/desktop usam estas coleções quando os controles novos existem.
             'desktop' => $banners->where('show_desktop', true)->values(),
             'mobile' => $banners->where('show_mobile', true)->values(),
         ];
 
+        return $this->cacheEnvelope($fingerprint, $payload);
+    }
+
+    private function cacheEnvelope(string $fingerprint, array $payload): array
+    {
         return [
             'fingerprint' => $fingerprint,
             'payload' => $payload,
@@ -78,12 +120,24 @@ class BannerController extends Controller
 
     private function currentFingerprint(): string
     {
+        if (! Schema::hasTable('banners')) {
+            return 'banners:no-table:0';
+        }
+
         $row = DB::table('banners')
             ->selectRaw('MAX(updated_at) as max_updated, COUNT(*) as total')
             ->first();
 
         $ts = $row?->max_updated ? strtotime((string) $row->max_updated) : 0;
-        return 'banners:' . $ts . ':' . (int) ($row?->total ?? 0);
+
+        $schemaVersion = implode('', [
+            Schema::hasColumn('banners', 'is_active') ? '1' : '0',
+            Schema::hasColumn('banners', 'sort_order') ? '1' : '0',
+            Schema::hasColumn('banners', 'show_desktop') ? '1' : '0',
+            Schema::hasColumn('banners', 'show_mobile') ? '1' : '0',
+        ]);
+
+        return 'banners:' . $ts . ':' . (int) ($row?->total ?? 0) . ':schema-' . $schemaVersion;
     }
 
     private function fingerprintToHttpDate(string $fp): string
