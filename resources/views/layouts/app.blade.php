@@ -125,7 +125,8 @@
             is_file(public_path('pixfacil-v15/pixfacil-desktop.js')) ? filemtime(public_path('pixfacil-v15/pixfacil-desktop.js')) : 0,
             is_file(public_path('pixfacil-v15/pixfacil-v15.css')) ? filemtime(public_path('pixfacil-v15/pixfacil-v15.css')) : 0,
             is_file(public_path('pixfacil-v15/pixfacil-desktop.css')) ? filemtime(public_path('pixfacil-v15/pixfacil-desktop.css')) : 0,
-            is_file(public_path('pixfacil-v15/pixfacil-desktop-home.css')) ? filemtime(public_path('pixfacil-v15/pixfacil-desktop-home.css')) : 0
+            is_file(public_path('pixfacil-v15/pixfacil-desktop-home.css')) ? filemtime(public_path('pixfacil-v15/pixfacil-desktop-home.css')) : 0,
+            is_file(public_path('pixfacil-v15/pixfacil-desktop-internal.css')) ? filemtime(public_path('pixfacil-v15/pixfacil-desktop-internal.css')) : 0
         );
 
         $pixfacilMobileConfig = [
@@ -174,6 +175,7 @@
         <link rel="stylesheet" href="{{ route('pixfacil.styles') }}?v={{ $themeAssetVersion }}">
         <link rel="stylesheet" href="{{ $versionedAsset('pixfacil-v15/pixfacil-desktop.css') }}">
         <link rel="stylesheet" href="{{ $versionedAsset('pixfacil-v15/pixfacil-desktop-home.css') }}">
+        <link rel="stylesheet" href="{{ $versionedAsset('pixfacil-v15/pixfacil-desktop-internal.css') }}">
     @endif
 
     <script defer src="{{ $versionedAsset('pixfacil-v15/pixfacil-v15.js') }}"></script>
