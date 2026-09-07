@@ -9,6 +9,7 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Cache;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class AdminFrontendContentPage extends Page implements HasForms
 {
@@ -38,6 +39,10 @@ class AdminFrontendContentPage extends Page implements HasForms
     {
         return [
             'brand_tagline' => 'Sua diversão em outro nível',
+            'home_hero_image' => '/pixfacil-v15/art/home-welcome.webp',
+            'home_vip_image' => '/pixfacil-v15/art/home-vip.webp',
+            'home_pix_image' => '/pixfacil-v15/art/home-pix.webp',
+            'home_promotions_image' => '/pixfacil-v15/art/home-promotions.webp',
             'home_vip_kicker' => 'SEJA VIP',
             'home_vip_title' => 'Mais benefícios',
             'home_vip_subtitle' => 'Mais recompensas',
@@ -94,6 +99,11 @@ class AdminFrontendContentPage extends Page implements HasForms
 
         $this->form->fill([
             'frontend_content' => array_replace(static::defaults(), $setting->frontend_content ?? []),
+            'home_hero_upload' => null,
+            'home_vip_upload' => null,
+            'home_pix_upload' => null,
+            'home_promotions_upload' => null,
+            'reset_home_art' => false,
         ]);
     }
 
@@ -109,10 +119,24 @@ class AdminFrontendContentPage extends Page implements HasForms
                             ->icon('heroicon-o-home')
                             ->schema([
                                 Forms\Components\Section::make('Identidade')
-                                    ->description('Logo e banners são gerenciados em Tema e Aparência. Aqui você controla os textos da Home.')
+                                    ->description('Logo e carrossel continuam em Tema e Aparência. Aqui você controla textos e artes auxiliares da Home.')
                                     ->schema([
                                         Forms\Components\TextInput::make('frontend_content.brand_tagline')->label('Slogan da plataforma')->maxLength(140)->columnSpanFull(),
                                     ]),
+
+                                Forms\Components\Section::make('Artes da Home')
+                                    ->description('As artes padrão já vêm no projeto. Envie uma nova imagem apenas quando quiser substituí-las. Formatos aceitos: JPG, PNG e WebP, até 4 MB.')
+                                    ->schema([
+                                        $this->artUpload('home_hero_upload', 'Banner principal / Hero', 'Recomendado: 1600x520 ou proporção próxima de 3:1.'),
+                                        $this->artUpload('home_vip_upload', 'Card VIP lateral', 'Recomendado: 900x480 ou proporção próxima de 1.9:1.'),
+                                        $this->artUpload('home_pix_upload', 'Card PIX lateral', 'Recomendado: 900x480 ou proporção próxima de 1.9:1.'),
+                                        $this->artUpload('home_promotions_upload', 'Arte de Promoções', 'Recomendado: 900x480 ou proporção próxima de 1.9:1.'),
+                                        Forms\Components\Toggle::make('reset_home_art')
+                                            ->label('Restaurar todas as artes padrão ao salvar')
+                                            ->helperText('Ative apenas se quiser descartar as artes personalizadas e voltar às imagens que acompanham o tema.')
+                                            ->columnSpanFull(),
+                                    ])->columns(2),
+
                                 Forms\Components\Section::make('Card VIP lateral')
                                     ->schema([
                                         Forms\Components\TextInput::make('frontend_content.home_vip_kicker')->label('Selo')->maxLength(80),
@@ -193,6 +217,16 @@ class AdminFrontendContentPage extends Page implements HasForms
             ]);
     }
 
+    private function artUpload(string $name, string $label, string $helper): Forms\Components\FileUpload
+    {
+        return Forms\Components\FileUpload::make($name)
+            ->label($label)
+            ->image()
+            ->helperText($helper . ' Se vazio, a arte atual é mantida.')
+            ->saveUploadedFileUsing(fn (TemporaryUploadedFile $file) => \Helper::upload($file)['path'] ?? null)
+            ->columnSpan(1);
+    }
+
     private function pageSection(string $label, string $key, bool $withHelp = false): Forms\Components\Section
     {
         $fields = [
@@ -214,19 +248,57 @@ class AdminFrontendContentPage extends Page implements HasForms
         ]);
 
         $state = $this->form->getState();
-        $content = array_replace(static::defaults(), $state['frontend_content'] ?? []);
+        $existing = array_replace(static::defaults(), $setting->frontend_content ?? []);
+        $content = array_replace($existing, $state['frontend_content'] ?? []);
+
+        $artMap = [
+            'home_hero_upload' => 'home_hero_image',
+            'home_vip_upload' => 'home_vip_image',
+            'home_pix_upload' => 'home_pix_image',
+            'home_promotions_upload' => 'home_promotions_image',
+        ];
+
+        if ((bool) ($state['reset_home_art'] ?? false)) {
+            $defaults = static::defaults();
+            foreach ($artMap as $contentKey) {
+                $content[$contentKey] = $defaults[$contentKey];
+            }
+        } else {
+            foreach ($artMap as $uploadKey => $contentKey) {
+                $path = $this->extractUploadPath($state[$uploadKey] ?? null);
+                if (filled($path)) {
+                    $content[$contentKey] = $path;
+                }
+            }
+        }
+
         $setting->update(['frontend_content' => $content]);
 
         Cache::forget('api:presentation:v1');
+        Cache::forget('setting');
         Cache::put('setting', $setting->fresh());
         Cache::put('asset_version', 'v' . now()->timestamp);
 
         Notification::make()
             ->title('Conteúdo atualizado')
-            ->body('Os textos das telas foram salvos e passam a valer no frontend após atualizar a página.')
+            ->body('Textos e artes foram salvos. O frontend passa a usar essas configurações após atualizar a página.')
             ->success()
             ->send();
 
         $this->mount();
+    }
+
+    private function extractUploadPath(mixed $value): ?string
+    {
+        if (is_string($value) && filled($value)) return ltrim($value, '/');
+
+        if (is_array($value)) {
+            foreach ($value as $item) {
+                $path = $this->extractUploadPath($item);
+                if (filled($path)) return $path;
+            }
+        }
+
+        return null;
     }
 }
