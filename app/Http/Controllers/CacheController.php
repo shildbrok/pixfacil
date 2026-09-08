@@ -5,6 +5,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\CacheNuker;
+use App\Support\AdminActionGuard;
 use Illuminate\Http\Request;
 
 class CacheController extends Controller
@@ -12,6 +13,11 @@ class CacheController extends Controller
     public function nuke(Request $request)
     {
         $this->authorize('admin');
+
+        $request->validate(['admin_pin' => ['required', 'string']]);
+        if (! app(AdminActionGuard::class)->confirm((string) $request->input('admin_pin'))) {
+            return back()->withErrors(['admin_pin' => 'PIN administrativo inválido.']);
+        }
 
         $deep          = filter_var($request->input('deep', true), FILTER_VALIDATE_BOOLEAN);
         $clearSessions = filter_var($request->input('sessions', true), FILTER_VALIDATE_BOOLEAN);

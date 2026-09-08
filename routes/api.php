@@ -32,6 +32,7 @@ use App\Http\Controllers\Api\RoundsFreeConfigController;
 use App\Http\Controllers\Api\Retro\RetroGameController;
 use App\Http\Controllers\Api\Retro\RetroEngineController;
 use App\Http\Controllers\Api\PlayerExperience\PlayerExperienceController;
+use App\Http\Controllers\Api\Home\LiveWinsController;
 
 
 Route::group(['middleware' => ['auth.jwt', 'check.session']], function () {
@@ -129,7 +130,7 @@ Route::prefix('jogos')->group(function () {
 });
 
 
-Route::group(['middleware' => ['auth.jwt']], function () {
+Route::group(['middleware' => ['auth.jwt', 'check.session']], function () {
 
 
     Route::prefix('daily-bonus')->group(function () {
@@ -196,17 +197,13 @@ Route::group(['middleware' => ['auth.jwt', 'check.session', 'throttle:api']], fu
         Route::post('mywallet/{id}', [WalletController::class, 'setWalletActive']);
 
         Route::get('recents/', [RecentsController::class, 'index']);
-        // M-04: rota removida — VipController::index nao existe (dava 500). Front usa /api/vips.
     });
 
 
     Route::prefix('carteira_wallet')->group(function () {
-
-
         Route::get('/deposit/rounds-free-configs', [RoundsFreeConfigController::class, 'index'])
             ->name('wallet.deposit.rounds-free-configs')
             ->middleware('throttle:wallet');
-
 
         Route::get('/deposit', [DepositController::class, 'index'])
             ->name('wallet.deposit.index')
@@ -220,12 +217,8 @@ Route::group(['middleware' => ['auth.jwt', 'check.session', 'throttle:api']], fu
             ->name('wallet.deposit.status')
             ->middleware('throttle:wallet');
 
-
         Route::get('withdraw/', [WithdrawController::class, 'index'])
             ->middleware('throttle:wallet');
-
-
-
     });
 });
 
@@ -240,7 +233,7 @@ Route::get('/games/all', [GameController::class, 'index'])
     ->middleware('throttle:games');
 
 Route::get('/games/single/{id}', [GameController::class, 'show'])
-    ->middleware(['throttle:games', 'aggregator.access:game']);
+    ->middleware(['auth.jwt', 'check.session', 'throttle:games', 'aggregator.access:game']);
 
 Route::any('/featured/games', [GameController::class, 'featured'])
     ->middleware('throttle:games');
@@ -249,12 +242,14 @@ Route::get('/casinos/games', [GameController::class, 'allGames'])
     ->middleware('throttle:games');
 
 
-// Home enxuta: seções dinâmicas (geridas no admin) com só os campos de exibição.
 Route::get('/home', [\App\Http\Controllers\Api\Home\HomeController::class, 'index'])
     ->middleware('throttle:games');
 
 Route::get('/home/providers', [\App\Http\Controllers\Api\Home\HomeController::class, 'providers'])
     ->middleware('throttle:games');
+
+Route::get('/home/live-wins', LiveWinsController::class)
+    ->middleware('throttle:public-short');
 
 
 Route::prefix('pesquisar_games')->group(function () {
@@ -285,9 +280,6 @@ Route::post('betcrm/app-install', [\App\Http\Controllers\Api\BetCrm\BetCrmContro
     ->middleware(['auth.jwt', 'check.session', 'throttle:api']);
 
 
-// -----------------------------------------------------------------------------
-// JOGOS RETRÔ / HOUSE GAMES — módulo isolado do PlayFiver.
-// -----------------------------------------------------------------------------
 Route::prefix('retro')->group(function () {
     Route::get('/games', [RetroGameController::class, 'index'])
         ->middleware('throttle:games');
@@ -307,17 +299,12 @@ Route::prefix('retro')->group(function () {
         ->middleware('throttle:games')
         ->group(function () {
             Route::get('/info', [RetroEngineController::class, 'info']);
-            Route::match(['GET', 'POST'], '/win', [RetroEngineController::class, 'win']);
-            Route::match(['GET', 'POST'], '/lost', [RetroEngineController::class, 'lost']);
+            Route::post('/win', [RetroEngineController::class, 'win']);
+            Route::post('/lost', [RetroEngineController::class, 'lost']);
         });
 });
 
 
-
-// -----------------------------------------------------------------------------
-// PIXFÁCIL PLAYER EXPERIENCE — identidade, conquistas, Arcade e ranking opt-in.
-// Não altera PlayFiver, PIX ou a lógica de apostas existente.
-// -----------------------------------------------------------------------------
 Route::prefix('player-experience')
     ->middleware(['auth.jwt', 'check.session', 'throttle:api'])
     ->group(function () {
@@ -336,8 +323,5 @@ Route::fallback(function () {
 });
 
 
-// AbilityPay: a doc deles especifica este caminho, cadastrado no painel ao criar
-// a chave de API. Sem assinatura no webhook — o payload não credita; o job
-// reconsulta a transação na fonte antes de mover dinheiro.
 Route::post('/abilitypay/callback', [\App\Http\Controllers\Gateway\AbilityPayController::class, 'callback'])
     ->middleware('throttle:webhooks');

@@ -57,7 +57,7 @@ class ProcessAbilityPayWebhook implements ShouldQueue
             }
 
             str_starts_with($event, 'payout.')
-                ? $this->handleCashOut($log, $externalId, $event)
+                ? $this->handleCashOut($log, $client, $externalId, $event)
                 : $this->handleCashIn($log, $client, $externalId, $event);
 
             $log->update(['processed_at' => now()]);
@@ -125,26 +125,42 @@ class ProcessAbilityPayWebhook implements ShouldQueue
         DepositPaymentFinalizer::finalize($externalId, (string) $local->idUnico, null, 'abilitypay');
     }
 
-    private function handleCashOut(GatewayWebhookLog $log, string $externalId, string $event): void
+    private function handleCashOut(GatewayWebhookLog $log, AbilityPayClient $client, string $externalId, string $event): void
     {
         $w = Withdrawal::where('payment_id', $externalId)->first();
 
         if (! $w) {
             $this->fail($log, 'saque não encontrado na base');
-
             return;
         }
 
-        // Já finalizado: não regride (webhook fora de ordem acontece).
         if (in_array((int) $w->status, [1, 2], true)) {
             return;
         }
 
-        match ($event) {
-            'payout.approved' => $w->update(['status' => 1]),
-            'payout.failed'   => $this->refundWithdrawal($w),
-            default           => $w->update(['status' => 9]),
-        };
+        // Webhook não assinado é apenas um gatilho. A decisão financeira vem
+        // obrigatoriamente da consulta autenticada na API do provedor.
+        $res = $client->getTransaction($externalId);
+        if (! $res->successful()) {
+            $w->update(['status' => 9]);
+            $this->fail($log, 'consulta do saque na fonte falhou: HTTP ' . $res->status());
+            return;
+        }
+
+        $tx = (array) ($res->json('data') ?? $res->json() ?? []);
+        $status = strtolower(trim((string) ($tx['status'] ?? '')));
+
+        if (in_array($status, ['approved', 'paid', 'completed', 'success'], true)) {
+            $w->update(['status' => 1]);
+            return;
+        }
+
+        if (in_array($status, ['failed', 'canceled', 'cancelled', 'rejected', 'refunded'], true)) {
+            $this->refundWithdrawal($w);
+            return;
+        }
+
+        $w->update(['status' => 9]);
     }
 
     /** Saque recusado: devolve ao saldo sacável e cancela, uma única vez. */

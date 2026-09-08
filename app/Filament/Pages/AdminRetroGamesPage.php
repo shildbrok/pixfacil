@@ -3,6 +3,8 @@
 namespace App\Filament\Pages;
 
 use App\Models\HouseGame;
+use App\Support\AdminActionGuard;
+use App\Support\AdminAudit;
 use Filament\Forms;
 use Filament\Forms\Get;
 use Filament\Notifications\Notification;
@@ -24,6 +26,25 @@ class AdminRetroGamesPage extends Page implements HasTable
     protected static ?string $navigationLabel = 'Jogos Retrô';
     protected static ?string $navigationIcon = 'heroicon-o-command-line';
     protected static ?string $slug = 'jogos-retro';
+
+    private const AUDIT_FIELDS = [
+        'name',
+        'description',
+        'cover',
+        'icon',
+        'active',
+        'show_home',
+        'sort_order',
+        'min_bet',
+        'max_bet',
+        'coin_rate',
+        'meta_multiplier',
+        'max_win_multiplier',
+        'player_speed',
+        'engine_params',
+        'min_win_seconds',
+        'round_timeout_seconds',
+    ];
 
     public static function canAccess(): bool
     {
@@ -57,8 +78,8 @@ class AdminRetroGamesPage extends Page implements HasTable
                     ->extraImgAttributes(['style' => 'object-fit:cover;border-radius:12px;background:#050505;']),
                 Tables\Columns\TextColumn::make('name')->label('Jogo')->weight('bold')->searchable()->sortable()
                     ->description(fn (HouseGame $record): string => $record->slug),
-                Tables\Columns\ToggleColumn::make('active')->label('Ativo'),
-                Tables\Columns\ToggleColumn::make('show_home')->label('Home'),
+                Tables\Columns\IconColumn::make('active')->label('Ativo')->boolean(),
+                Tables\Columns\IconColumn::make('show_home')->label('Home')->boolean(),
                 Tables\Columns\TextColumn::make('min_bet')->label('Aposta')
                     ->formatStateUsing(fn ($state, HouseGame $record): string => 'R$ '.number_format((float) $state, 2, ',', '.').' – R$ '.number_format((float) $record->max_bet, 2, ',', '.')),
                 Tables\Columns\TextColumn::make('meta_multiplier')->label('Meta')->suffix('×')->numeric(decimalPlaces: 2),
@@ -95,15 +116,39 @@ class AdminRetroGamesPage extends Page implements HasTable
                         'min_win_seconds' => $record->min_win_seconds,
                         'round_timeout_seconds' => $record->round_timeout_seconds,
                         'engine_params' => $record->engine_params ?? [],
+                        'admin_password' => null,
                     ])
                     ->form($this->formSchema())
                     ->action(function (HouseGame $record, array $data): void {
+                        if (! app(AdminActionGuard::class)->confirm((string) ($data['admin_password'] ?? ''))) {
+                            Notification::make()
+                                ->title('Acesso negado')
+                                ->body('PIN administrativo inválido.')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
+                        unset($data['admin_password']);
+                        $before = $record->only(self::AUDIT_FIELDS);
+
                         $cover = $this->normalizeUpload($data['cover_upload'] ?? null);
                         $icon = $this->normalizeUpload($data['icon_upload'] ?? null);
                         unset($data['cover_upload'], $data['icon_upload'], $data['slug']);
                         if ($cover) $data['cover'] = $cover;
                         if ($icon) $data['icon'] = $icon;
+
                         $record->update($data);
+                        $fresh = $record->fresh();
+
+                        AdminAudit::log(
+                            'retro_game.config.update',
+                            $fresh,
+                            $before,
+                            $fresh->only(self::AUDIT_FIELDS),
+                            'Atualizou configuração e economia de jogo retrô.'
+                        );
+
                         Notification::make()->title('Jogo retrô atualizado')->success()->send();
                     }),
             ])
@@ -207,6 +252,17 @@ class AdminRetroGamesPage extends Page implements HasTable
                 ->collapsed()
                 ->schema([
                     Forms\Components\KeyValue::make('engine_params')->label('Configuração completa do engine')->keyLabel('Parâmetro')->valueLabel('Valor')->columnSpanFull(),
+                ]),
+
+            Forms\Components\Section::make('Confirmação administrativa')
+                ->description('Alterações neste jogo afetam diretamente a economia das rodadas.')
+                ->schema([
+                    Forms\Components\TextInput::make('admin_password')
+                        ->label('PIN administrativo')
+                        ->password()
+                        ->numeric()
+                        ->length(6)
+                        ->required(),
                 ]),
         ];
     }

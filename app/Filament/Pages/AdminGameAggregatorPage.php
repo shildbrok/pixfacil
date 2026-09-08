@@ -8,6 +8,7 @@ use App\Models\Game;
 use App\Models\GamesKey;
 use App\Models\Provider;
 use App\Support\AdminActionGuard;
+use App\Support\AdminAudit;
 use Filament\Actions\Action;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
@@ -55,9 +56,9 @@ class AdminGameAggregatorPage extends Page implements HasForms, HasActions
 
         $this->form->fill([
             'playfiver_url' => $this->setting?->playfiver_url ?: 'https://api.playfivers.com',
-            'playfiver_code' => $this->setting?->playfiver_code,
-            'playfiver_token' => $this->setting?->playfiver_token,
-            'playfiver_secret' => $this->setting?->playfiver_secret,
+            'playfiver_code' => '',
+            'playfiver_token' => '',
+            'playfiver_secret' => '',
             'playfiver_webhook_url' => $this->webhookUrl('/playfiver/webhook'),
         ]);
     }
@@ -126,7 +127,7 @@ class AdminGameAggregatorPage extends Page implements HasForms, HasActions
                                     ]),
 
                                 Section::make('Credenciais PlayFiver')
-                                    ->description('Todos os campos aparecem preenchidos para conferência. Edite somente o que precisar alterar.')
+                                    ->description('Segredos existentes nunca são exibidos. Deixe o campo vazio para manter o valor atual.')
                                     ->schema([
                                         TextInput::make('playfiver_url')
                                             ->label('API Base URL')
@@ -138,12 +139,15 @@ class AdminGameAggregatorPage extends Page implements HasForms, HasActions
                                         TextInput::make('playfiver_code')
                                             ->label('Código do Agente')
                                             ->placeholder('Digite o código do agente')
-                                            ->maxLength(191),
+                                            ->maxLength(191)
+                                            ->helperText(fn (): string => filled($this->setting?->playfiver_code) ? 'Código já configurado. Digite apenas para substituir.' : 'Ainda não configurado.'),
 
                                         TextInput::make('playfiver_token')
                                             ->label('Token do Agente')
                                             ->placeholder('Digite o token do agente')
                                             ->maxLength(191)
+                                            ->password()
+                                            ->helperText(fn (): string => filled($this->setting?->playfiver_token) ? 'Token já configurado. Digite apenas para substituir.' : 'Ainda não configurado.')
                                             ->extraInputAttributes([
                                                 'autocomplete' => 'off',
                                                 'spellcheck' => 'false',
@@ -155,6 +159,8 @@ class AdminGameAggregatorPage extends Page implements HasForms, HasActions
                                             ->label('Chave Secreta do Agente')
                                             ->placeholder('Digite a chave secreta do agente')
                                             ->maxLength(191)
+                                            ->password()
+                                            ->helperText(fn (): string => filled($this->setting?->playfiver_secret) ? 'Segredo já configurado. Digite apenas para substituir.' : 'Ainda não configurado.')
                                             ->extraInputAttributes([
                                                 'autocomplete' => 'off',
                                                 'spellcheck' => 'false',
@@ -177,11 +183,7 @@ class AdminGameAggregatorPage extends Page implements HasForms, HasActions
                 'x-on:click' => 'navigator.clipboard.writeText(' . json_encode($value) . ')',
             ])
             ->action(function () use ($value): void {
-                Notification::make()
-                    ->title('Copiado')
-                    ->body($value)
-                    ->success()
-                    ->send();
+                Notification::make()->title('Copiado')->body($value)->success()->send();
             });
     }
 
@@ -189,53 +191,51 @@ class AdminGameAggregatorPage extends Page implements HasForms, HasActions
     {
         try {
             if (config('app.demo')) {
-                Notification::make()
-                    ->title('Modo demonstração')
-                    ->body('Esta alteração não pode ser realizada no modo demonstração.')
-                    ->danger()
-                    ->send();
-
+                Notification::make()->title('Modo demonstração')->body('Esta alteração não pode ser realizada no modo demonstração.')->danger()->send();
                 return;
             }
 
             if (! app(AdminActionGuard::class)->confirm((string) ($confirmation['admin_password'] ?? ''))) {
-                Notification::make()
-                    ->title('Acesso negado')
-                    ->body('O PIN administrativo está incorreto.')
-                    ->danger()
-                    ->send();
-
+                Notification::make()->title('Acesso negado')->body('O PIN administrativo está incorreto.')->danger()->send();
                 return;
             }
 
             $payload = $this->form->getState();
             unset($payload['playfiver_webhook_url']);
-
             $payload['playfiver_url'] = rtrim((string) ($payload['playfiver_url'] ?: 'https://api.playfivers.com'), '/');
 
             $setting = GamesKey::query()->first();
+            $before = [
+                'playfiver_url' => $setting?->playfiver_url,
+                'code_configured' => filled($setting?->playfiver_code),
+                'token_configured' => filled($setting?->playfiver_token),
+                'secret_configured' => filled($setting?->playfiver_secret),
+            ];
+
+            foreach (['playfiver_code', 'playfiver_token', 'playfiver_secret'] as $secretField) {
+                if (! filled($payload[$secretField] ?? null)) {
+                    unset($payload[$secretField]);
+                }
+            }
 
             if ($setting) {
                 $setting->update($payload);
             } else {
-                GamesKey::query()->create($payload);
+                $setting = GamesKey::query()->create($payload);
             }
 
-            Notification::make()
-                ->title('Agregador atualizado')
-                ->body('As credenciais da PlayFiver foram salvas com sucesso.')
-                ->success()
-                ->send();
+            AdminAudit::log('playfiver.credentials.update', $setting, $before, [
+                'playfiver_url' => $setting->fresh()->playfiver_url,
+                'code_configured' => filled($setting->fresh()->playfiver_code),
+                'token_configured' => filled($setting->fresh()->playfiver_token),
+                'secret_configured' => filled($setting->fresh()->playfiver_secret),
+            ], 'Atualizou configuração do agregador PlayFiver sem registrar segredos.');
 
+            Notification::make()->title('Agregador atualizado')->body('As credenciais da PlayFiver foram salvas com sucesso.')->success()->send();
             $this->mount();
         } catch (\Throwable $e) {
             report($e);
-
-            Notification::make()
-                ->title('Erro ao salvar agregador')
-                ->body($e->getMessage())
-                ->danger()
-                ->send();
+            Notification::make()->title('Erro ao salvar agregador')->body($e->getMessage())->danger()->send();
         }
     }
 
@@ -255,11 +255,9 @@ class AdminGameAggregatorPage extends Page implements HasForms, HasActions
     public function webhookUrl(string $path): string
     {
         $baseUrl = rtrim((string) config('app.url'), '/');
-
         if ($baseUrl === '') {
             $baseUrl = rtrim(url('/'), '/');
         }
-
         return $baseUrl . '/' . ltrim($path, '/');
     }
 }

@@ -71,18 +71,25 @@
             if (settled) return Promise.resolve(Arcade.payout || 0);
             settled = true;
             global.currentAction = 'win';
-            var value = Number(amount);
-            if (!isFinite(value) || value < 0) value = 0;
             var voltar = !(options && options.voltar === false);
-            return request('win', 'POST', {amount: value}).then(function (res) {
+            // O valor visual do jogo não é enviado ao backend: resultado e payout
+            // são exclusivamente server-authoritative.
+            return request('win', 'POST', {}).then(function (res) {
                 if (!res.ok) {
                     settled = false;
                     alert((res.data && res.data.message) || 'Não foi possível liquidar a rodada.');
                     return 0;
                 }
                 var paid = Number((res.data && res.data.payout) || 0);
+                var outcome = String((res.data && res.data.outcome) || (paid > 0 ? 'won' : 'lost'));
                 Arcade.payout = paid;
-                try { global.PixFacilOriginals && global.PixFacilOriginals.event('win', {payout: paid}); } catch (e) {}
+                if (outcome === 'won' && paid > 0) {
+                    global.currentAction = 'win';
+                    try { global.PixFacilOriginals && global.PixFacilOriginals.event('win', {payout: paid}); } catch (e) {}
+                } else {
+                    global.currentAction = 'lose';
+                    try { global.PixFacilOriginals && global.PixFacilOriginals.event('lose'); } catch (e) {}
+                }
                 if (voltar) goBack('?win_amount=' + encodeURIComponent(paid));
                 return paid;
             });

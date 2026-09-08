@@ -1,16 +1,17 @@
 <?php
 
-
-
 namespace App\Support;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 
 class AdminActionGuard
 {
     private const SESSION_KEY = 'admin.action_pin_confirmed_at';
+    private const MAX_ATTEMPTS = 5;
+    private const DECAY_SECONDS = 300;
 
     public function ttlMinutes(): int
     {
@@ -22,41 +23,43 @@ class AdminActionGuard
         $ttlMinutes ??= $this->ttlMinutes();
         $confirmedAt = (int) session(self::SESSION_KEY, 0);
 
-        if ($confirmedAt <= 0) {
-            return false;
-        }
-
-        return (time() - $confirmedAt) < ($ttlMinutes * 60);
+        return $confirmedAt > 0 && (time() - $confirmedAt) < ($ttlMinutes * 60);
     }
 
     public function confirm(?string $pin): bool
     {
-
         $user = auth()->user();
 
         if (! $user) {
             return false;
         }
 
-        $pin = trim((string) ($pin ?? ''));
+        $key = $this->rateLimitKey($user);
 
-        if (! preg_match('/^\d{6}$/', $pin)) {
+        if (RateLimiter::tooManyAttempts($key, self::MAX_ATTEMPTS)) {
             return false;
         }
 
+        $pin = trim((string) ($pin ?? ''));
         $storedPin = (string) ($user->admin_action_pin ?? '');
 
-        if ($storedPin === '') {
+        if (! preg_match('/^\d{6}$/', $pin) || $storedPin === '' || ! Hash::check($pin, $storedPin)) {
+            RateLimiter::hit($key, self::DECAY_SECONDS);
             return false;
         }
 
-        if (! Hash::check($pin, $storedPin)) {
-            return false;
-        }
-
+        RateLimiter::clear($key);
         session([self::SESSION_KEY => time()]);
 
         return true;
+    }
+
+    public function availableIn(): int
+    {
+        $user = auth()->user();
+        if (! $user) return 0;
+
+        return RateLimiter::availableIn($this->rateLimitKey($user));
     }
 
     public function clearConfirmation(): void
@@ -70,5 +73,10 @@ class AdminActionGuard
             'session_token' => null,
             'remember_token' => Str::random(60),
         ])->save();
+    }
+
+    private function rateLimitKey(User $user): string
+    {
+        return 'admin-action-pin:' . $user->getKey() . ':' . sha1((string) request()->ip());
     }
 }

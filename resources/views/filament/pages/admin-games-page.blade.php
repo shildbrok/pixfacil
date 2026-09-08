@@ -2,10 +2,11 @@
     <style>
         .gm-wrap{display:grid;gap:18px}
         .gm-card{border:1px solid rgba(163, 163, 163,.18);border-radius:24px;background:linear-gradient(135deg,rgba(20, 20, 20,.96),rgba(30, 30, 30,.92));box-shadow:0 18px 48px rgba(0,0,0,.18);overflow:hidden}
-        .gm-hero{padding:20px 22px;background:radial-gradient(circle at top left,rgba(249, 115, 22,.18),transparent 34%),radial-gradient(circle at top right,rgba(34,197,94,.13),transparent 32%)}
+        .gm-hero{padding:20px 22px;background:radial-gradient(circle at top left,rgba(57,242,92,.13),transparent 34%),radial-gradient(circle at top right,rgba(34,197,94,.10),transparent 32%)}
         .gm-title{margin:0;color:#fff;font-size:25px;font-weight:950;letter-spacing:-.04em}
         .gm-sub{margin:7px 0 0;color:#d4d4d4;font-size:13px;line-height:1.5;max-width:980px}
-        .gm-note{margin-top:12px;border:1px solid rgba(251, 146, 60,.22);border-radius:16px;background:rgba(124, 45, 18,.20);padding:12px;color:#fed7aa;font-size:12px;line-height:1.55}
+        .gm-note{margin-top:12px;border:1px solid rgba(57,242,92,.20);border-radius:16px;background:rgba(57,242,92,.045);padding:12px;color:#b8c5bc;font-size:12px;line-height:1.55}
+        .gm-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}.gm-actions a{display:inline-flex;align-items:center;padding:9px 13px;border:1px solid rgba(57,242,92,.34);border-radius:11px;color:#57f372;background:rgba(57,242,92,.055);text-decoration:none;font-size:12px;font-weight:900}.gm-actions a:hover{background:rgba(57,242,92,.10)}
         .gm-stats{display:grid;gap:10px;padding:0 20px 18px}
         @media(min-width:900px){.gm-stats{grid-template-columns:repeat(4,minmax(0,1fr))}}
         @media(min-width:1400px){.gm-stats{grid-template-columns:repeat(11,minmax(0,1fr))}}
@@ -28,7 +29,7 @@
         .gm-preview-title{color:#fff;font-size:20px;font-weight:950}
         .gm-preview-desc{color:#d4d4d4;font-size:13px;line-height:1.55}
         .gm-pills{display:flex;gap:8px;flex-wrap:wrap}
-        .gm-pill{display:inline-flex;width:max-content;border-radius:999px;background:rgba(249, 115, 22,.14);color:#fdba74;border:1px solid rgba(249, 115, 22,.24);padding:4px 10px;font-size:11px;font-weight:900}
+        .gm-pill{display:inline-flex;width:max-content;border-radius:999px;background:rgba(57,242,92,.10);color:#8aff9f;border:1px solid rgba(57,242,92,.20);padding:4px 10px;font-size:11px;font-weight:900}
         .gm-pill-ok{background:rgba(34,197,94,.14);color:#22c55e;border-color:rgba(34,197,94,.24)}
         .gm-pill-bad{background:rgba(239,68,68,.14);color:#ef4444;border-color:rgba(239,68,68,.24)}
         .gm-info-grid{display:grid;gap:10px}
@@ -49,7 +50,11 @@
                 </p>
 
                 <div class="gm-note">
-                    As categorias são salvas na tabela <strong>category_game</strong>. Ao editar jogos, a página limpa caches do catálogo e renova <strong>asset_version</strong>.
+                    A capa original continua ligada ao catálogo do provedor. Para deixar a Home mais bonita sem perder a sincronização, use a <strong>Capa PixFácil</strong> no módulo de Capas de Vitrine.
+                </div>
+
+                <div class="gm-actions">
+                    <a href="{{ \App\Filament\Pages\AdminGameCoversPage::getUrl() }}">🖼️ Gerenciar Capas de Vitrine</a>
                 </div>
             </div>
 
@@ -87,8 +92,9 @@
                 <div class="gm-modal-body">
                     <div class="gm-preview">
                         <div class="gm-preview-img">
-                            @if($this->imageUrl($previewGame->cover))
-                                <img src="{{ $this->imageUrl($previewGame->cover) }}" alt="{{ $previewGame->game_name }}">
+                            @php($previewCover = $previewGame->pixfacil_home_cover ?: $previewGame->cover)
+                            @if($this->imageUrl($previewCover))
+                                <img src="{{ $this->imageUrl($previewCover) }}" alt="{{ $previewGame->game_name }}">
                             @else
                                 <span style="color:#737373;font-size:12px">Sem capa</span>
                             @endif
@@ -104,6 +110,7 @@
                                 <span class="gm-pill {{ $previewGame->status ? 'gm-pill-ok' : 'gm-pill-bad' }}">{{ $previewGame->status ? 'Ativo' : 'Inativo' }}</span>
                                 @if($previewGame->show_home)<span class="gm-pill gm-pill-ok">Home</span>@endif
                                 @if($previewGame->is_featured)<span class="gm-pill gm-pill-ok">Destaque</span>@endif
+                                @if($previewGame->pixfacil_home_cover)<span class="gm-pill gm-pill-ok">Capa PixFácil</span>@endif
                                 @if($previewGame->original)<span class="gm-pill">Original</span>@endif
                                 @foreach($previewGame->categories as $category)
                                     <span class="gm-pill">{{ $category->name }}</span>

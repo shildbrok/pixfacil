@@ -45,12 +45,13 @@ class RetroEngineController extends Controller
             return $error;
         }
 
-        $claimed = (float) $request->input('amount', $request->input('ganho', 0));
-
         try {
-            $result = $this->service->settleWin($game, $round, $claimed);
+            // O navegador apenas sinaliza que a mecânica local chegou ao ponto de
+            // liquidação. Resultado e valor financeiro são decididos no servidor.
+            $result = $this->service->settleWin($game, $round);
             return response()->json([
                 'ok' => true,
+                'outcome' => (string) $result['outcome'],
                 'payout' => (float) $result['payout'],
                 'balance' => (float) $result['balance'],
             ]);

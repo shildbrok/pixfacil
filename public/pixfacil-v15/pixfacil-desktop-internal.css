@@ -1,0 +1,401 @@
+@media (min-width:768px){
+  /* ============================================================
+     PROMOÇÕES — cards desktop reais, sem imagem quebrada/alt text
+     ============================================================ */
+  body.pfd-shell-active .pf8-promos{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:16px;
+    align-items:stretch;
+  }
+  body.pfd-shell-active .pf8-promo{
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    min-width:0;
+    min-height:350px;
+    overflow:hidden;
+    border:1px solid rgba(57,242,92,.24);
+    border-radius:20px;
+    background:linear-gradient(180deg,#08100b 0%,#040706 100%);
+    box-shadow:0 18px 44px rgba(0,0,0,.24),inset 0 0 28px rgba(57,242,92,.025);
+    transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+  }
+  body.pfd-shell-active .pf8-promo:hover{
+    transform:translateY(-3px);
+    border-color:rgba(57,242,92,.55);
+    box-shadow:0 22px 52px rgba(0,0,0,.32),0 0 26px rgba(57,242,92,.06);
+  }
+  body.pfd-shell-active .pf8-promo::before{
+    content:"";
+    display:block;
+    flex:0 0 168px;
+    background:
+      radial-gradient(circle at 68% 40%,rgba(57,242,92,.28),transparent 25%),
+      radial-gradient(circle at 28% 72%,rgba(247,198,65,.16),transparent 24%),
+      linear-gradient(135deg,#08160d,#031006 56%,#030504);
+    border-bottom:1px solid rgba(57,242,92,.16);
+  }
+  body.pfd-shell-active .pf8-promo::after{
+    content:"";
+    position:absolute;
+    z-index:0;
+    top:44px;
+    left:50%;
+    width:74px;
+    height:74px;
+    transform:translateX(-50%) rotate(45deg);
+    border:2px solid rgba(57,242,92,.52);
+    border-radius:18px;
+    box-shadow:0 0 30px rgba(57,242,92,.13),inset 0 0 24px rgba(57,242,92,.08);
+  }
+  body.pfd-shell-active .pf8-promo>img{
+    position:absolute;
+    z-index:2;
+    inset:0 0 auto 0;
+    display:block;
+    width:100%;
+    height:168px;
+    object-fit:cover;
+    object-position:center;
+    border:0;
+  }
+  body.pfd-shell-active .pf8-promo>img.pf12-img-failed{
+    display:none!important;
+  }
+  body.pfd-shell-active .pf8-promo-body{
+    position:relative;
+    z-index:3;
+    display:flex;
+    flex:1;
+    flex-direction:column;
+    padding:18px 18px 17px;
+  }
+  body.pfd-shell-active .pf8-promo h3{
+    margin:0;
+    color:#f5faf6;
+    font-size:17px;
+    line-height:1.28;
+    font-weight:850;
+    letter-spacing:-.25px;
+  }
+  body.pfd-shell-active .pf8-promo p{
+    margin:9px 0 16px;
+    color:#8f9a93;
+    font-size:11px;
+    line-height:1.55;
+    display:-webkit-box;
+    -webkit-line-clamp:4;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+  }
+  body.pfd-shell-active .pf8-promo a{
+    width:max-content;
+    margin-top:auto;
+    padding:10px 15px;
+    border:1px solid #55f371;
+    border-radius:11px;
+    background:linear-gradient(145deg,#57f372,#24cf49);
+    color:#031006;
+    text-decoration:none;
+    font-size:11px;
+    font-weight:900;
+  }
+
+  /* ============================================================
+     ARCADE / ORIGINALS — desktop baseado no V15, não mobile esticado
+     ============================================================ */
+  body.pfd-shell-active .pf15-arcade-hero{
+    position:relative;
+    isolation:isolate;
+    overflow:hidden;
+    min-height:300px;
+    margin:2px 0 18px;
+    padding:42px 44px 32px;
+    border:1px solid rgba(57,242,92,.32);
+    border-radius:24px;
+    background:
+      radial-gradient(circle at 78% 26%,rgba(57,242,92,.18),transparent 27%),
+      radial-gradient(circle at 10% 100%,rgba(64,101,255,.12),transparent 31%),
+      linear-gradient(145deg,#07110a 0%,#020403 62%,#08150b 100%);
+    box-shadow:inset 0 0 48px rgba(57,242,92,.035),0 20px 52px rgba(0,0,0,.28);
+  }
+  body.pfd-shell-active .pf15-arcade-hero::before{
+    content:"";
+    position:absolute;
+    z-index:-1;
+    width:280px;
+    height:280px;
+    right:74px;
+    top:8px;
+    border-radius:50%;
+    border:1px solid rgba(57,242,92,.20);
+    box-shadow:0 0 0 26px rgba(57,242,92,.025),0 0 0 58px rgba(57,242,92,.015),0 0 74px rgba(57,242,92,.12);
+  }
+  body.pfd-shell-active .pf15-arcade-hero::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    z-index:-1;
+    pointer-events:none;
+    background:repeating-linear-gradient(180deg,rgba(255,255,255,.014) 0 1px,transparent 1px 5px);
+  }
+  body.pfd-shell-active .pf15-arcade-grid{
+    position:absolute;
+    z-index:-1;
+    left:-10%;
+    right:-10%;
+    height:160px;
+    bottom:-88px;
+    transform:perspective(340px) rotateX(63deg);
+    transform-origin:center top;
+    background-image:linear-gradient(rgba(57,242,92,.16) 1px,transparent 1px),linear-gradient(90deg,rgba(57,242,92,.16) 1px,transparent 1px);
+    background-size:30px 30px;
+    mask-image:linear-gradient(to bottom,#000,transparent 92%);
+  }
+  body.pfd-shell-active .pf15-kicker{
+    display:inline-flex;
+    align-items:center;
+    margin-bottom:15px;
+    padding:7px 10px;
+    border:1px solid rgba(57,242,92,.36);
+    border-radius:8px;
+    background:rgba(57,242,92,.055);
+    color:#53f66d;
+    font:900 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+    letter-spacing:.14em;
+  }
+  body.pfd-shell-active .pf15-arcade-hero h1{
+    margin:0;
+    color:#f8fff9;
+    font-size:56px;
+    line-height:.88;
+    font-weight:950;
+    letter-spacing:-3px;
+  }
+  body.pfd-shell-active .pf15-arcade-hero h1 b{
+    display:block;
+    margin-top:9px;
+    color:#39f25c;
+    text-shadow:0 0 28px rgba(57,242,92,.26);
+  }
+  body.pfd-shell-active .pf15-arcade-hero p{
+    max-width:520px;
+    margin:18px 0 20px;
+    color:#9aa69e;
+    font-size:13px;
+    line-height:1.55;
+  }
+  body.pfd-shell-active .pf15-arcade-actions{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  body.pfd-shell-active .pf15-arcade-actions a,
+  body.pfd-shell-active .pf15-arcade-actions button{
+    height:42px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding:0 16px;
+    border:1px solid rgba(57,242,92,.35);
+    border-radius:12px;
+    background:#39f25c;
+    color:#031006;
+    font-size:10px;
+    font-weight:950;
+    letter-spacing:.04em;
+    text-decoration:none;
+    cursor:pointer;
+  }
+  body.pfd-shell-active .pf15-arcade-actions button{
+    background:#08100a;
+    color:#dce6df;
+  }
+  body.pfd-shell-active .pf15-arcade-actions svg{width:17px;height:17px}
+
+  body.pfd-shell-active .pf15-player-strip{
+    display:grid;
+    grid-template-columns:auto minmax(0,1fr) auto;
+    align-items:center;
+    gap:13px;
+    margin:0 0 18px;
+    padding:13px 15px;
+    border:1px solid #28342d;
+    border-radius:17px;
+    background:linear-gradient(135deg,#080d09,#050706);
+    color:#fff;
+    text-decoration:none;
+  }
+  body.pfd-shell-active .pf15-player-strip small{display:block;color:#6f7c74;font:800 8px/1.2 ui-monospace,monospace;letter-spacing:.1em}
+  body.pfd-shell-active .pf15-player-strip strong{display:block;margin-top:4px;color:#f0f5f1;font-size:13px}
+  body.pfd-shell-active .pf15-player-strip>b{color:#39f25c;font-size:11px}
+
+  body.pfd-shell-active .pf15-season{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 120px;
+    gap:18px;
+    align-items:center;
+    margin:0 0 20px;
+    padding:18px;
+    border:1px solid rgba(112,104,255,.23);
+    border-radius:20px;
+    background:radial-gradient(circle at 88% 42%,rgba(91,93,255,.13),transparent 34%),linear-gradient(145deg,#080a10,#050707);
+  }
+
+  body.pfd-shell-active .pf15-originals-scroll,
+  body.pfd-shell-active .pf14-retro-grid,
+  body.pfd-shell-active .pf14-retro-home{
+    display:grid!important;
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    grid-auto-flow:row!important;
+    gap:12px!important;
+    overflow:visible!important;
+    padding:2px 0 4px;
+  }
+  body.pfd-shell-active .pf14-retro-card{
+    display:block;
+    min-width:0;
+    color:#fff;
+    text-decoration:none;
+  }
+  body.pfd-shell-active .pf14-retro-art{
+    position:relative;
+    overflow:hidden;
+    aspect-ratio:1.72/1;
+    border:1px solid color-mix(in srgb,var(--pf15-accent,#39f25c) 34%,#2d3831);
+    border-radius:14px;
+    background:
+      radial-gradient(circle at 70% 30%,color-mix(in srgb,var(--pf15-accent,#39f25c) 20%,transparent),transparent 28%),
+      linear-gradient(145deg,#08100a,#030504);
+    box-shadow:0 10px 25px rgba(0,0,0,.26);
+    transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;
+  }
+  body.pfd-shell-active .pf14-retro-card:hover .pf14-retro-art{
+    transform:translateY(-3px);
+    border-color:color-mix(in srgb,var(--pf15-accent,#39f25c) 68%,#2d3831);
+    box-shadow:0 16px 30px rgba(0,0,0,.34),0 0 22px color-mix(in srgb,var(--pf15-accent,#39f25c) 8%,transparent);
+  }
+  body.pfd-shell-active .pf14-retro-art::before{
+    content:"";
+    position:absolute;
+    z-index:0;
+    width:56px;
+    height:56px;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%) rotate(45deg);
+    border:1px solid color-mix(in srgb,var(--pf15-accent,#39f25c) 54%,transparent);
+    border-radius:14px;
+    box-shadow:0 0 22px color-mix(in srgb,var(--pf15-accent,#39f25c) 13%,transparent);
+  }
+  body.pfd-shell-active .pf14-retro-art img{
+    position:relative;
+    z-index:2;
+    display:block;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    transition:transform .24s ease;
+  }
+  body.pfd-shell-active .pf14-retro-art img.pf12-img-failed{display:none!important}
+  body.pfd-shell-active .pf14-retro-card:hover .pf14-retro-art img{transform:scale(1.035)}
+  body.pfd-shell-active .pf14-retro-badge{
+    position:absolute;
+    z-index:4;
+    left:8px;
+    top:8px;
+    height:20px;
+    padding:0 7px;
+    display:grid;
+    place-items:center;
+    border:1px solid color-mix(in srgb,var(--pf15-accent,#39f25c) 58%,transparent);
+    border-radius:7px;
+    background:rgba(3,12,5,.80);
+    color:var(--pf15-accent,#39f25c);
+    font:900 7px/1 ui-monospace,monospace;
+    letter-spacing:.11em;
+  }
+  body.pfd-shell-active .pf15-edition{
+    position:absolute;
+    z-index:4;
+    left:9px;
+    right:48px;
+    bottom:9px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    color:#e7efe9;
+    font:850 7px/1 ui-monospace,monospace;
+    letter-spacing:.08em;
+    text-shadow:0 1px 5px #000;
+  }
+  body.pfd-shell-active .pf14-retro-play{
+    position:absolute;
+    z-index:4;
+    right:8px;
+    bottom:8px;
+    width:31px;
+    height:31px;
+    display:grid;
+    place-items:center;
+    border-radius:50%;
+    border:1px solid color-mix(in srgb,var(--pf15-accent,#39f25c) 48%,transparent);
+    background:rgba(3,8,4,.80);
+    color:var(--pf15-accent,#39f25c);
+  }
+  body.pfd-shell-active .pf14-retro-play svg{width:16px;height:16px}
+  body.pfd-shell-active .pf14-retro-meta{padding:8px 2px 0}
+  body.pfd-shell-active .pf14-retro-meta strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#edf3ef;font-size:12px}
+  body.pfd-shell-active .pf14-retro-meta span{display:block;margin-top:3px;color:#7f8a83;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  body.pfd-shell-active .pf15-challenges{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+  }
+  body.pfd-shell-active .pf15-challenge{
+    display:grid;
+    grid-template-columns:46px minmax(0,1fr);
+    gap:11px;
+    padding:13px;
+    border:1px solid #28322c;
+    border-radius:15px;
+    background:linear-gradient(145deg,#070a08,#040604);
+  }
+  body.pfd-shell-active .pf15-ranking{
+    overflow:hidden;
+    border:1px solid #27312b;
+    border-radius:16px;
+    background:#050705;
+  }
+  body.pfd-shell-active .pf15-arcade-note{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-top:18px;
+    padding:13px 15px;
+    border:1px solid rgba(57,242,92,.18);
+    border-radius:14px;
+    background:#061009;
+    color:#89968e;
+    font-size:10px;
+  }
+  body.pfd-shell-active .pf15-arcade-note svg{width:20px;height:20px;color:#39f25c;flex:0 0 auto}
+
+  @media(max-width:1180px){
+    body.pfd-shell-active .pf8-promos{grid-template-columns:repeat(2,minmax(0,1fr))}
+    body.pfd-shell-active .pf15-originals-scroll,
+    body.pfd-shell-active .pf14-retro-grid,
+    body.pfd-shell-active .pf14-retro-home{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+  }
+  @media(max-width:920px){
+    body.pfd-shell-active .pf8-promos{grid-template-columns:1fr}
+    body.pfd-shell-active .pf15-arcade-hero{padding:30px 28px;min-height:260px}
+    body.pfd-shell-active .pf15-arcade-hero h1{font-size:46px}
+    body.pfd-shell-active .pf15-originals-scroll,
+    body.pfd-shell-active .pf14-retro-grid,
+    body.pfd-shell-active .pf14-retro-home{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  }
+}

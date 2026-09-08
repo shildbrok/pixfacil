@@ -1,0 +1,88 @@
+/*
+ * PixFácil V15 — isolamento do frontend unificado.
+ * Em rotas owned o frontend legado nunca deve participar do primeiro paint.
+ * O renderer V15 usa #pixfacil-v15-app em mobile e desktop.
+ */
+body.pf15-owned-server{
+  background:#000!important;
+  color:#f7f9f7!important;
+  min-height:100vh;
+}
+
+body.pf15-owned-server #ondagamesv1{
+  position:fixed!important;
+  left:-400vw!important;
+  top:0!important;
+  width:100vw!important;
+  min-height:100vh!important;
+  visibility:hidden!important;
+  opacity:0!important;
+  pointer-events:none!important;
+  overflow:hidden!important;
+}
+
+body.pf15-owned-server #pixfacil-v15-app{
+  display:block!important;
+  position:relative;
+  z-index:2147480000;
+  min-height:100vh;
+  background:#000;
+  color:#f7f9f7;
+  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+
+.pf15-server-boot{
+  position:fixed;
+  inset:0;
+  z-index:2147480100;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:20px;
+  padding:28px;
+  background:radial-gradient(circle at 50% 38%,rgba(57,242,92,.09),transparent 26%),#000;
+}
+
+.pf15-server-boot img{
+  display:block;
+  width:min(220px,58vw);
+  max-height:72px;
+  object-fit:contain;
+}
+
+.pf15-server-boot-bar{
+  width:min(210px,52vw);
+  height:5px;
+  overflow:hidden;
+  border:1px solid rgba(57,242,92,.25);
+  border-radius:999px;
+  background:#09100b;
+}
+
+.pf15-server-boot-bar::after{
+  content:"";
+  display:block;
+  width:46%;
+  height:100%;
+  border-radius:inherit;
+  background:linear-gradient(90deg,#20c944,#5df577);
+  box-shadow:0 0 14px rgba(57,242,92,.35);
+  animation:pf15ServerBoot .8s ease-in-out infinite alternate;
+}
+
+.pf15-server-boot small{
+  color:#8f9892;
+  font-size:11px;
+  letter-spacing:.02em;
+}
+
+@keyframes pf15ServerBoot{
+  from{transform:translateX(-20%)}
+  to{transform:translateX(140%)}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .pf15-server-boot-bar::after{animation:none;width:100%}
+  body.pf15-owned-server *{scroll-behavior:auto!important}
+}

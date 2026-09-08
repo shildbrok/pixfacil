@@ -178,12 +178,15 @@ trait PlayFiverTrait
         // seria marcado como refunded e o crédito iria para a carteira errada.
         $order = Order::where("round_id", $detalhes["round_id"])
             ->where("user_id", $user->id)
+            ->where('providers', 'play_fiver')
+            ->where('type', 'bet')
+            ->orderByDesc('id')
             ->first();
         if ($order == null) {
             return response()->json(["msg" => "INVALID_USER", "balance" => 0]);
         }
 
-        $saldo = \DB::transaction(function () use ($order, $user, $detalhes) {
+        $saldo = \DB::transaction(function () use ($order, $user) {
             $order = Order::query()->lockForUpdate()->find($order->id);
             if (! $order || (int) $order->refunded === 1) {
                 return (float) $user->wallet->total_balance;
@@ -192,7 +195,8 @@ trait PlayFiverTrait
             $order->update(["refunded" => true]);
 
             $wallet = $user->wallet()->lockForUpdate()->first();
-            $wallet->increment("balance_withdrawal", max(0, (float) ($detalhes['win'] ?? 0)));
+            $refundAmount = max(0, (float) $order->amount);
+            $wallet->increment("balance_withdrawal", $refundAmount);
 
             return (float) $wallet->fresh()->total_balance;
         });

@@ -6,6 +6,8 @@ namespace App\Http\Controllers\Api\Profile;
 
 use App\Http\Controllers\Controller;
 use App\Models\UserPixKey;
+use App\Models\KycConfig;
+use App\Models\Verificacao;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -58,7 +60,25 @@ class PixKeyController extends Controller
             ], 400);
         }
 
+        $expectedCpf = preg_replace('/\D/', '', (string) ($user->cpf ?? ''));
+        $kycConfig = KycConfig::current();
+        if ($kycConfig->isWithdrawalKycRequired()) {
+            $approvedKyc = Verificacao::query()
+                ->where('user_id', $user->id)
+                ->where('status', Verificacao::STATUS_APPROVED)
+                ->orderByDesc('id')
+                ->first();
+            if (! $approvedKyc) {
+                return response()->json(['error' => 'Conclua o KYC antes de cadastrar uma chave Pix para saque.'], 403);
+            }
+            $expectedCpf = preg_replace('/\D/', '', (string) $approvedKyc->cpf);
+        }
 
+        if ($expectedCpf === '' || ! hash_equals($expectedCpf, $data['holder_cpf'])) {
+            return response()->json(['error' => 'A chave Pix deve pertencer ao mesmo CPF verificado da conta.'], 422);
+        }
+
+        $data['holder_name'] = (string) ($user->name ?: $data['holder_name']);
         $data['key_type'] = UserPixKey::TYPE_DOCUMENT;
         $data['pix_key'] = $data['holder_cpf'];
 
