@@ -66,9 +66,11 @@ class AdminGameCoversPage extends Page implements HasTable
                     ->label('Home')
                     ->boolean(),
 
-                Tables\Columns\IconColumn::make('pixfacil_home_cover')
-                    ->label('Personalizada')
-                    ->boolean(fn (?string $state): bool => filled($state)),
+                Tables\Columns\TextColumn::make('showcase_status')
+                    ->label('Capa PixFácil')
+                    ->state(fn (Game $record): string => filled($record->pixfacil_home_cover) ? 'Personalizada' : 'Original')
+                    ->badge()
+                    ->color(fn (string $state): string => $state === 'Personalizada' ? 'success' : 'gray'),
             ])
             ->filters([
                 Tables\Filters\Filter::make('home')
@@ -130,7 +132,7 @@ class AdminGameCoversPage extends Page implements HasTable
 
     private function query(): Builder
     {
-        if (! Schema::hasColumn('games', 'pixfacil_home_cover')) {
+        if (! Schema::hasTable('games') || ! Schema::hasColumn('games', 'pixfacil_home_cover')) {
             return Game::query()->whereRaw('1 = 0');
         }
 
