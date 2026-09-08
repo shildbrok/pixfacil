@@ -1,6 +1,7 @@
 (()=>{'use strict';
 const isHome=()=>location.pathname.replace(/\/+$/,'')===''||location.pathname==='/';
 const isDesktop=()=>window.innerWidth>=768;
+const currentPath=()=>location.pathname.replace(/\/+$/,'')||'/';
 let lastHref=location.href,loading=false,lastRun=0;
 function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 function asset(v){if(!v)return '';v=String(v).trim();if(/^(?:https?:|data:|blob:)/i.test(v))return v;if(v.startsWith('/'))return v;v=v.replace(/^\.\//,'').replace(/^public\//,'');if(v.startsWith('storage/'))return '/'+v;if(v.startsWith('uploads/'))return '/storage/'+v;return '/storage/'+v}
@@ -9,7 +10,42 @@ function hrefFor(section){if(section?.type==='category'&&section.slug)return '/c
 function gameCard(g){const name=g?.game_name||g?.name||g?.game_code||'Jogo',img=asset(g?.cover);return `<a class="pfdh-game" href="/games/play/${encodeURIComponent(g.id)}/${encodeURIComponent(slug(name))}" data-pf-extra-game="${esc(g.id)}"><span class="pfdh-game-art">${img?`<img src="${esc(img)}" loading="lazy" alt="">`:''}</span><strong>${esc(name)}</strong><small>${esc(g?.provider||'')}</small></a>`}
 function visibleIds(root){const set=new Set();for(const a of root.querySelectorAll('a[href*="/games/play/"]')){const m=(a.getAttribute('href')||'').match(/\/games\/play\/([^/]+)/i);if(m)set.add(String(m[1]))}return set}
 function existingTitles(root){return new Set([...root.querySelectorAll('.pfdh-section-head h2')].map(x=>(x.textContent||'').trim().toLowerCase()))}
+function sportsIcon(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="m9.4 9 2.6-1.9L14.6 9l-1 3.1h-3.2zM5.1 10.1l3 .3 1 3-2.3 2M18.9 10.1l-3 .3-1 3 2.3 2M9 18.5l1.4-2.7h3.2l1.4 2.7"/></svg>'}
+function syncSportsbookDesktop(){
+ const nav=document.querySelector('#pfd-sidebar .pfd-nav');
+ if(!nav)return;
+ let item=nav.querySelector('[data-pf-sportsbook-nav="desktop"]');
+ if(!item){
+  item=document.createElement('a');
+  item.href='/sporting';
+  item.dataset.pfSportsbookNav='desktop';
+  item.className='pfd-nav-item';
+  item.innerHTML=`${sportsIcon()}<span>Sportsbook</span>`;
+  const live=[...nav.querySelectorAll('.pfd-nav-item')].find(a=>/ao vivo/i.test((a.textContent||'').trim()));
+  if(live)live.after(item);else nav.prepend(item);
+ }
+ item.classList.toggle('active',currentPath().startsWith('/sporting'));
+}
+function syncSportsbookMobile(){
+ const nav=document.querySelector('.pf8-bottom.pf11-bottom');
+ if(!nav)return;
+ const slot=nav.querySelector('[data-pf11-slot="4"]');
+ if(!slot)return;
+ slot.href='/sporting';
+ slot.dataset.pf8Nav='';
+ slot.dataset.pfSportsbookNav='mobile';
+ slot.setAttribute('aria-label','Sportsbook');
+ slot.className=(currentPath().startsWith('/sporting')?'active ':'')+'pf11-nav-sportsbook';
+ if(slot.dataset.pfSportsbookReady!=='1'){
+  slot.dataset.pfSportsbookReady='1';
+  slot.innerHTML=`${sportsIcon()}<span>Sportsbook</span>`;
+ }
+}
+function syncSportsbookNav(){
+ if(isDesktop())syncSportsbookDesktop();else syncSportsbookMobile();
+}
 async function hydrate(force=false){
+ syncSportsbookNav();
  if(!isHome()||!isDesktop())return;
  const main=document.querySelector('#pfd-home .pfdh-main');if(!main||loading)return;
  const old=main.querySelector('[data-pfd-extra-sections]');if(old&&!force)return;if(old)old.remove();
@@ -32,10 +68,10 @@ async function hydrate(force=false){
  }catch(_){}finally{loading=false}
 }
 function watch(){
- const obs=new MutationObserver(()=>hydrate());obs.observe(document.body,{childList:true,subtree:true});
- setInterval(()=>{if(location.href!==lastHref){lastHref=location.href;hydrate(true)}else hydrate()},1000);
- addEventListener('popstate',()=>hydrate(true));addEventListener('resize',()=>hydrate(true),{passive:true});
+ const obs=new MutationObserver(()=>{syncSportsbookNav();hydrate()});obs.observe(document.body,{childList:true,subtree:true});
+ setInterval(()=>{syncSportsbookNav();if(location.href!==lastHref){lastHref=location.href;hydrate(true)}else hydrate()},1000);
+ addEventListener('popstate',()=>{syncSportsbookNav();hydrate(true)});addEventListener('resize',()=>{syncSportsbookNav();hydrate(true)},{passive:true});
 }
-function boot(){hydrate(true);watch()}
+function boot(){syncSportsbookNav();hydrate(true);watch()}
 document.readyState==='loading'?document.addEventListener('DOMContentLoaded',boot,{once:true}):boot();
 })();
