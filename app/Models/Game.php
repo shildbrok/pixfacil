@@ -1,7 +1,5 @@
 <?php
 
-
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -25,6 +23,7 @@ class Game extends Model
         'game_type',
         'description',
         'cover',
+        'pixfacil_home_cover',
         'status',
         'technology',
         'has_lobby',
@@ -40,25 +39,21 @@ class Game extends Model
         'original',
     ];
 
-
     protected $casts = [
-        'status'        => 'boolean',
-        'has_lobby'     => 'boolean',
-        'is_mobile'     => 'boolean',
+        'status' => 'boolean',
+        'has_lobby' => 'boolean',
+        'is_mobile' => 'boolean',
         'has_freespins' => 'boolean',
-        'has_tables'    => 'boolean',
-        'only_demo'     => 'boolean',
-        'is_featured'   => 'boolean',
-        'show_home'     => 'boolean',
-        'original'      => 'boolean',
-
+        'has_tables' => 'boolean',
+        'only_demo' => 'boolean',
+        'is_featured' => 'boolean',
+        'show_home' => 'boolean',
+        'original' => 'boolean',
         'views' => 'integer',
-        'rtp'   => 'integer',
-
+        'rtp' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
-
 
     protected $appends = [
         'date_human_readable',
@@ -76,13 +71,11 @@ class Game extends Model
         });
     }
 
-
     public static function clearCatalogCaches(): void
     {
         Cache::forget('pf:v6:providers_with_games_priority_min');
         Cache::forget('pf:v2:games_by_categories');
         Cache::forget('pf:v2:featured_games:min');
-
         Cache::forget('pf:v7:providers_with_games_priority_min');
         Cache::forget('pf:v3:games_by_categories');
         Cache::forget('pf:v3:featured_games:min');
@@ -99,8 +92,6 @@ class Game extends Model
         }
     }
 
-
-
     public function provider(): BelongsTo
     {
         return $this->belongsTo(Provider::class, 'provider_id', 'id');
@@ -110,8 +101,6 @@ class Game extends Model
     {
         return $this->belongsToMany(Category::class, 'category_game', 'game_id', 'category_id');
     }
-
-
 
     public function getCreatedAtFormattedAttribute(): ?string
     {
@@ -123,13 +112,10 @@ class Game extends Model
         return $this->created_at?->diffForHumans();
     }
 
-
     protected function serializeDate(\DateTimeInterface $date): string
     {
         return $date->format('Y-m-d\TH:i:sP');
     }
-
-
 
     public function scopeActive($query)
     {
@@ -140,7 +126,6 @@ class Game extends Model
     {
         return $query->where('is_featured', 1);
     }
-
 
     public function scopeSearch($query, ?string $term)
     {
